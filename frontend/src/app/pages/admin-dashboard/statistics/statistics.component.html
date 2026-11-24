@@ -1,0 +1,37 @@
+<div class="container py-4">
+  <h2 class="mb-4">Statistiques générales</h2>
+
+  @if (loading) {
+    <div class="text-center py-5"><div class="spinner-border"></div></div>
+  } @else if (error) {
+    <div class="alert alert-danger">{{ error }}</div>
+  } @else if (stats) {
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3"><div class="card stat-card"><div class="card-body">
+        <div class="text-muted small">Clients</div><div class="stat-value">{{ stats.clients }}</div></div></div></div>
+      <div class="col-6 col-lg-3"><div class="card stat-card"><div class="card-body">
+        <div class="text-muted small">Restaurants</div><div class="stat-value">{{ stats.restaurants }}</div></div></div></div>
+      <div class="col-6 col-lg-3"><div class="card stat-card"><div class="card-body">
+        <div class="text-muted small">Commandes</div><div class="stat-value">{{ stats.orders }}</div></div></div></div>
+      <div class="col-6 col-lg-3"><div class="card stat-card border-success"><div class="card-body">
+        <div class="text-muted small">Chiffre d'affaires global</div>
+        <div class="stat-value text-success">{{ stats.revenue | number:'1.2-2' }} DT</div></div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header fw-bold">Commandes par statut</div>
+      <div class="card-body">
+        @for (s of stats.ordersByStatus; track s.statut) {
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small">
+              <span>{{ label(s.statut) }}</span><span>{{ s.count }} ({{ pct(s.count) }}%)</span>
+            </div>
+            <div class="progress"><div class="progress-bar" [style.width.%]="pct(s.count)"></div></div>
+          </div>
+        } @empty {
+          <p class="text-muted mb-0">Aucune commande</p>
+        }
+      </div>
+    </div>
+  }
+</div>

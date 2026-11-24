@@ -1,0 +1,79 @@
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h2 class="m-0">Gestion des commandes</h2>
+    <select class="form-select w-auto" [(ngModel)]="filter" (change)="onFilterChange()">
+      <option value="">Tous les statuts</option>
+      @for (s of statusList; track s) { <option [value]="s">{{ labels[s] }}</option> }
+    </select>
+  </div>
+
+  @if (error) { <div class="alert alert-danger">{{ error }}</div> }
+
+  @if (loading) {
+    <div class="text-center py-5"><div class="spinner-border"></div></div>
+  } @else {
+    <div class="table-responsive card">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr><th>Date</th><th>Client</th><th>Total</th><th>Statut</th><th class="text-end">Actions</th></tr>
+        </thead>
+        <tbody>
+          @for (o of orders; track o._id) {
+            <tr>
+              <td>{{ o.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ o.client?.prenom }} {{ o.client?.nom }}</td>
+              <td>{{ o.total | number:'1.2-2' }} DT</td>
+              <td><span class="badge" [class]="'badge ' + badges[o.statut]">{{ labels[o.statut] }}</span></td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-secondary me-1" (click)="toggleDetails(o)">Détails</button>
+                @for (n of next(o); track n) {
+                  <button class="btn btn-sm me-1"
+                          [class]="n === 'annulee' ? 'btn btn-sm btn-outline-danger me-1' : 'btn btn-sm btn-success me-1'"
+                          (click)="change(o, n)">
+                    {{ n === 'annulee' ? 'Refuser' : labels[n] }}
+                  </button>
+                }
+              </td>
+            </tr>
+            @if (selected?._id === o._id) {
+              <tr class="table-light">
+                <td colspan="5">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Adresse :</strong> {{ o.adresseLivraison }}</p>
+                      <p class="mb-1"><strong>Téléphone :</strong> {{ o.client?.telephone }}</p>
+                      <p class="mb-1"><strong>Paiement :</strong> {{ o.modePaiement }}</p>
+                      @if (o.remarque) { <p class="mb-1"><strong>Remarque :</strong> {{ o.remarque }}</p> }
+                    </div>
+                    <div class="col-md-6">
+                      @for (a of o.articles; track a.plat) {
+                        <div class="d-flex justify-content-between">
+                          <span>{{ a.quantite }} × {{ a.nom }}</span>
+                          <span>{{ a.quantite * a.prixUnitaire | number:'1.2-2' }} DT</span>
+                        </div>
+                      }
+                      <hr class="my-1">
+                      <div class="d-flex justify-content-between"><span>Sous-total</span><span>{{ o.sousTotal | number:'1.2-2' }} DT</span></div>
+                      <div class="d-flex justify-content-between"><span>Livraison</span><span>{{ o.fraisLivraison | number:'1.2-2' }} DT</span></div>
+                      <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>{{ o.total | number:'1.2-2' }} DT</span></div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            }
+          } @empty {
+            <tr><td colspan="5" class="text-center text-muted py-4">Aucune commande</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (pages > 1) {
+      <nav class="mt-3 d-flex justify-content-center gap-2">
+        <button class="btn btn-outline-primary btn-sm" [disabled]="page === 1" (click)="goTo(page - 1)">Précédent</button>
+        <span class="align-self-center">Page {{ page }} / {{ pages }}</span>
+        <button class="btn btn-outline-primary btn-sm" [disabled]="page === pages" (click)="goTo(page + 1)">Suivant</button>
+      </nav>
+    }
+  }
+</div>
