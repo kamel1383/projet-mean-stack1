@@ -1,0 +1,17 @@
+<header class="site-header">
+  <a class="brand" routerLink="/" aria-label="Accueil RestoGo">
+    <span class="brand-icon">🍽️</span>
+    <span>RestoGo</span>
+  </a>
+
+  <nav class="main-nav" aria-label="Navigation principale">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      Accueil
+    </a>
+    <a routerLink="/restaurants" routerLinkActive="active">
+      Restaurants
+    </a>
+  </nav>
+
+  <a class="nav-cta" routerLink="/restaurants">Commander</a>
+</header>

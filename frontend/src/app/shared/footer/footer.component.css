@@ -1,0 +1,23 @@
+.site-footer {
+  margin-top: 48px;
+  padding: 28px 20px;
+  background: #34251e;
+  color: #f7eee8;
+  text-align: center;
+}
+
+.footer-brand {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.site-footer p {
+  margin: 8px 0;
+  color: #e2d3c8;
+}
+
+.site-footer small {
+  color: #c8b8ad;
+}
