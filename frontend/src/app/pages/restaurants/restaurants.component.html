@@ -1,0 +1,96 @@
+<section class="restaurants-page">
+  <header>
+    <h1>Nos restaurants</h1>
+    <p>Découvrez les restaurants disponibles et choisissez selon vos envies.</p>
+  </header>
+
+  <div class="filters">
+    <input
+      type="search"
+      placeholder="Rechercher un restaurant"
+      [value]="searchText()"
+      (input)="updateSearch($event)"
+    />
+
+    <input
+      type="text"
+      placeholder="Type de cuisine"
+      [value]="cuisineText()"
+      (input)="updateCuisine($event)"
+    />
+
+    <select
+      [value]="openFilter()"
+      (change)="updateOpenFilter($event)"
+      aria-label="Filtrer selon les horaires d’ouverture"
+    >
+      <option value="all">Tous les restaurants</option>
+      <option value="true">Ouverts</option>
+      <option value="false">Fermés</option>
+    </select>
+
+    <button type="button" (click)="applyFilters()">Rechercher</button>
+  </div>
+
+  <p class="result-count">{{ total() }} restaurant(s) trouvé(s)</p>
+
+  @if (loading()) {
+    <p>Chargement des restaurants…</p>
+  } @else if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  } @else if (restaurants().length === 0) {
+    <p>Aucun restaurant ne correspond à votre recherche.</p>
+  } @else {
+    <div class="restaurant-grid">
+      @for (restaurant of restaurants(); track restaurant._id) {
+        <article class="restaurant-card">
+          @if (restaurant.image) {
+            <img
+              class="restaurant-image"
+              [src]="restaurant.image"
+              [alt]="'Photo de ' + restaurant.nom"
+            />
+          }
+
+          <div class="restaurant-info">
+            <h2>{{ restaurant.nom }}</h2>
+            <p>{{ restaurant.description }}</p>
+            <p><strong>Cuisine :</strong> {{ restaurant.typeCuisine }}</p>
+            <p><strong>Adresse :</strong> {{ restaurant.adresse }}</p>
+            <p><strong>Horaires :</strong> {{ restaurant.horaires }}</p>
+            <p>
+              <strong>Livraison :</strong>
+              {{ restaurant.fraisLivraison }} DT
+            </p>
+            <p>
+              <strong>État :</strong>
+              {{ restaurant.isOpen ? 'Ouvert' : 'Fermé' }}
+            </p>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (pages() > 1) {
+    <nav class="pagination" aria-label="Pagination">
+      <button
+        type="button"
+        (click)="previousPage()"
+        [disabled]="page() <= 1 || loading()"
+      >
+        Précédent
+      </button>
+
+      <span>Page {{ page() }} sur {{ pages() }}</span>
+
+      <button
+        type="button"
+        (click)="nextPage()"
+        [disabled]="page() >= pages() || loading()"
+      >
+        Suivant
+      </button>
+    </nav>
+  }
+</section>

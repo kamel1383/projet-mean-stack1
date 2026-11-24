@@ -1,0 +1,85 @@
+<section class="hero">
+  <div class="hero-content">
+    <p class="eyebrow">Vos envies, livrées simplement</p>
+    <h1>Le bon repas commence ici.</h1>
+    <p class="hero-description">
+      Trouvez un restaurant et découvrez les saveurs près de chez vous.
+    </p>
+
+    <form class="hero-search" (submit)="searchRestaurants($event)">
+      <input
+        type="search"
+        placeholder="Chercher un restaurant"
+        aria-label="Chercher un restaurant"
+        [value]="searchText()"
+        (input)="updateSearch($event)"
+      />
+      <button type="submit">Rechercher</button>
+    </form>
+  </div>
+</section>
+
+<section class="home-section">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">À vous de choisir</p>
+      <h2>Parcourir par cuisine</h2>
+    </div>
+    <button class="text-button" type="button" (click)="showRestaurants()">
+      Tous les restaurants →
+    </button>
+  </div>
+
+  @if (cuisines().length > 0) {
+    <div class="cuisine-list">
+      @for (cuisine of cuisines(); track cuisine) {
+        <button
+          class="cuisine-chip"
+          type="button"
+          (click)="chooseCuisine(cuisine)"
+        >
+          {{ cuisine }}
+        </button>
+      }
+    </div>
+  } @else if (!loading()) {
+    <p class="muted">Les cuisines seront affichées dès qu’il y aura des restaurants validés.</p>
+  }
+</section>
+
+<section class="home-section">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Nos adresses</p>
+      <h2>À découvrir</h2>
+    </div>
+    <button class="text-button" type="button" (click)="showRestaurants()">
+      Voir la liste →
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="muted">Chargement des restaurants…</p>
+  } @else if (featuredRestaurants().length === 0) {
+    <p class="muted">Aucun restaurant validé pour le moment.</p>
+  } @else {
+    <div class="featured-grid">
+      @for (restaurant of featuredRestaurants(); track restaurant._id) {
+        <article class="featured-card">
+          @if (restaurant.image) {
+            <img [src]="restaurant.image" [alt]="'Photo de ' + restaurant.nom" />
+          }
+
+          <div class="featured-info">
+            <span class="cuisine-label">{{ restaurant.typeCuisine }}</span>
+            <h3>{{ restaurant.nom }}</h3>
+            <p>{{ restaurant.adresse }}</p>
+            <p class="open-state">
+              {{ restaurant.isOpen ? 'Ouvert' : 'Fermé' }}
+            </p>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,186 @@
+:host {
+  display: block;
+  background: #fffaf5;
+  color: #34251e;
+}
+
+.hero {
+  display: flex;
+  min-height: 360px;
+  align-items: center;
+  padding: 48px max(24px, calc((100% - 1200px) / 2));
+  background:
+    radial-gradient(circle at 85% 20%, rgb(255 198 130 / 40%), transparent 28%),
+    linear-gradient(120deg, #fff0df, #fffaf5 65%);
+}
+
+.hero-content {
+  width: min(680px, 100%);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #d9662b;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 620px;
+  margin: 0;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.05;
+}
+
+.hero-description {
+  max-width: 500px;
+  color: #766a63;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.hero-search {
+  display: flex;
+  gap: 10px;
+  margin-top: 26px;
+  padding: 8px;
+  border: 1px solid #f0e5dc;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 10px 30px rgb(65 42 26 / 8%);
+}
+
+.hero-search input {
+  min-width: 0;
+  flex: 1;
+  padding: 12px;
+  border: 0;
+  outline: 0;
+  font: inherit;
+}
+
+.hero-search button,
+.cuisine-chip {
+  border: 0;
+  border-radius: 10px;
+  background: #e87535;
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hero-search button {
+  padding: 12px 18px;
+}
+
+.home-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 24px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  color: #c95c25;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cuisine-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cuisine-chip {
+  padding: 12px 18px;
+  border-radius: 999px;
+}
+
+.cuisine-chip:hover,
+.hero-search button:hover {
+  background: #c95c25;
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+}
+
+.featured-card {
+  overflow: hidden;
+  border: 1px solid #f0e5dc;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(65 42 26 / 6%);
+}
+
+.featured-card img {
+  display: block;
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  background: #f1e8df;
+}
+
+.featured-info {
+  padding: 16px;
+}
+
+.cuisine-label {
+  color: #d9662b;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.featured-info h3 {
+  margin: 8px 0;
+}
+
+.featured-info p,
+.muted {
+  color: #766a63;
+}
+
+.open-state {
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .hero {
+    min-height: 320px;
+    padding: 36px 16px;
+  }
+
+  .hero-search {
+    flex-direction: column;
+  }
+
+  .home-section {
+    padding: 28px 16px;
+  }
+
+  .section-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+}
