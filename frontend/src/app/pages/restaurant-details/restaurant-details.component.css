@@ -1,0 +1,6 @@
+.resto-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.category-nav { display: flex; flex-wrap: wrap; gap: .5rem; position: sticky; top: 0; background: var(--bs-body-bg, #fff); padding: .5rem 0; z-index: 5; }
+.dish-img { width: 88px; height: 88px; object-fit: cover; border-radius: .5rem; flex-shrink: 0; }
+.dish-card.unavailable { opacity: .6; }
+.dish-card.unavailable .dish-img { filter: grayscale(1); }
+@media (max-width: 575.98px) { .resto-header { flex-direction: column; } }
