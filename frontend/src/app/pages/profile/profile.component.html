@@ -1,0 +1,182 @@
+<div class="container py-5">
+  <div class="row g-4">
+    
+    <!-- Colonne latérale : Carte d'identité utilisateur -->
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm border-0 rounded-4 p-4 text-center bg-white">
+        <div class="position-relative d-inline-block mx-auto mb-3">
+          <img
+            *ngIf="user()?.photoProfil; else defaultAvatar"
+            [src]="user()?.photoProfil"
+            alt="Photo de profil"
+            class="rounded-circle object-fit-cover border border-2 border-warning shadow-sm"
+            style="width: 96px; height: 96px;"
+          />
+          <ng-template #defaultAvatar>
+            <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle p-3" style="width: 96px; height: 96px;">
+              <i class="bi bi-person fs-1"></i>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="d-flex justify-content-center gap-2 mb-3">
+          <label class="btn btn-sm btn-outline-secondary px-3 mb-0" style="cursor: pointer;">
+            <span *ngIf="isUploadingPhoto()" class="spinner-border spinner-border-sm me-1"></span>
+            <i *ngIf="!isUploadingPhoto()" class="bi bi-camera me-1"></i>
+            {{ user()?.photoProfil ? 'Changer' : 'Ajouter photo' }}
+            <input type="file" accept="image/png, image/jpeg, image/webp" class="d-none" (change)="onPhotoSelected($event)" [disabled]="isUploadingPhoto()" />
+          </label>
+          <button
+            *ngIf="user()?.photoProfil"
+            type="button"
+            (click)="onRemovePhoto()"
+            [disabled]="isUploadingPhoto()"
+            class="btn btn-sm btn-outline-danger px-2"
+            title="Supprimer la photo"
+          >
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+        <h4 class="fw-bold mb-1">{{ user()?.prenom }} {{ user()?.nom }}</h4>
+        <p class="text-muted small mb-2">{{ user()?.email }}</p>
+        
+        <div class="mb-3">
+          <span class="badge rounded-pill px-3 py-2 text-uppercase fs-7"
+            [ngClass]="{
+              'bg-danger': user()?.role === 'admin',
+              'bg-warning text-dark': user()?.role === 'restaurateur',
+              'bg-primary': user()?.role === 'client'
+            }">
+            {{ user()?.role }}
+          </span>
+        </div>
+
+        <div class="border-top pt-3 text-start small text-muted">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Téléphone :</span>
+            <span class="fw-semibold text-dark">{{ user()?.telephone }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Statut du compte :</span>
+            <span class="badge bg-success-subtle text-success">Actif</span>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+          <a *ngIf="user()?.role === 'admin'" routerLink="/admin-dashboard/users" class="btn btn-dark rounded-3 d-flex align-items-center justify-content-center">
+            <i class="bi bi-people-fill me-2"></i>
+            <span>Gestion des utilisateurs</span>
+          </a>
+          <a routerLink="/" class="btn btn-outline-secondary rounded-3 d-flex align-items-center justify-content-center">
+            <i class="bi bi-house me-2"></i>
+            <span>Retour à l'accueil</span>
+          </a>
+          <button (click)="onLogout()" class="btn btn-outline-danger rounded-3 d-flex align-items-center justify-content-center">
+            <i class="bi bi-box-arrow-right me-2"></i>
+            <span>Se déconnecter</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne principale : Édition & Sécurité -->
+    <div class="col-12 col-lg-8">
+      
+      <!-- Bloc 1 : Coordonnées -->
+      <div class="card shadow-sm border-0 rounded-4 p-4 mb-4 bg-white">
+        <h5 class="fw-bold mb-3 d-flex align-items-center text-dark">
+          <i class="bi bi-person-gear text-danger me-2"></i>
+          Modifier mes coordonnées
+        </h5>
+
+        <div *ngIf="profileSuccessMessage()" class="alert alert-success py-2 px-3 small rounded-3 mb-3">
+          <i class="bi bi-check-circle-fill me-1"></i> {{ profileSuccessMessage() }}
+        </div>
+        <div *ngIf="profileErrorMessage()" class="alert alert-danger py-2 px-3 small rounded-3 mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ profileErrorMessage() }}
+        </div>
+
+        <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Prénom</label>
+              <input type="text" formControlName="prenom" class="form-control bg-light" />
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Nom</label>
+              <input type="text" formControlName="nom" class="form-control bg-light" />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Adresse Email (non modifiable)</label>
+            <input type="email" [value]="user()?.email || ''" disabled class="form-control bg-light text-muted" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Numéro de téléphone</label>
+            <input type="tel" formControlName="telephone" class="form-control bg-light" />
+          </div>
+
+          <button type="submit" [disabled]="profileForm.invalid || isSavingProfile()" class="btn btn-danger px-4 rounded-3 fw-semibold">
+            <span *ngIf="isSavingProfile()" class="spinner-border spinner-border-sm me-1"></span>
+            {{ isSavingProfile() ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- Bloc 2 : Sécurité / Mot de passe -->
+      <div class="card shadow-sm border-0 rounded-4 p-4 mb-4 bg-white">
+        <h5 class="fw-bold mb-3 d-flex align-items-center text-dark">
+          <i class="bi bi-shield-lock text-danger me-2"></i>
+          Changer de mot de passe
+        </h5>
+
+        <div *ngIf="passwordSuccessMessage()" class="alert alert-success py-2 px-3 small rounded-3 mb-3">
+          <i class="bi bi-check-circle-fill me-1"></i> {{ passwordSuccessMessage() }}
+        </div>
+        <div *ngIf="passwordErrorMessage()" class="alert alert-danger py-2 px-3 small rounded-3 mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ passwordErrorMessage() }}
+        </div>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Mot de passe actuel</label>
+            <input type="password" formControlName="currentPassword" class="form-control bg-light" placeholder="••••••••" />
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Nouveau mot de passe</label>
+              <input type="password" formControlName="newPassword" class="form-control bg-light" placeholder="••••••••" />
+              <div class="form-text small">Min. 8 car. (1 maj, 1 min, 1 chiffre)</div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-semibold text-secondary">Confirmation</label>
+              <input type="password" formControlName="confirmation" class="form-control bg-light" placeholder="••••••••" />
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="passwordForm.invalid || isChangingPassword()" class="btn btn-outline-danger px-4 rounded-3 fw-semibold">
+            <span *ngIf="isChangingPassword()" class="spinner-border spinner-border-sm me-1"></span>
+            {{ isChangingPassword() ? 'Mise à jour...' : 'Mettre à jour le mot de passe' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- Bloc 3 : Section Commandes (Placeholder propre selon consigne) -->
+      <div class="card shadow-sm border-0 rounded-4 p-4 bg-white">
+        <h5 class="fw-bold mb-2 d-flex align-items-center text-dark">
+          <i class="bi bi-receipt text-danger me-2"></i>
+          Mes Commandes
+        </h5>
+        <div class="text-center py-4 bg-light rounded-3 my-2">
+          <i class="bi bi-bag-check fs-1 text-muted mb-2 d-block"></i>
+          <p class="text-muted small mb-0">Votre historique de commandes apparaîtra ici une fois vos commandes passées.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

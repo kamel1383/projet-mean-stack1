@@ -6,12 +6,51 @@
 
   <nav class="main-nav" aria-label="Navigation principale">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-      Accueil
+      <i class="bi bi-house-door"></i> Accueil
     </a>
     <a routerLink="/restaurants" routerLinkActive="active">
-      Restaurants
+      <i class="bi bi-shop"></i> Restaurants
     </a>
+
+    <ng-container *ngIf="authService.isAuthenticated()">
+      <a *ngIf="authService.currentUserRole() === 'admin'" routerLink="/admin-dashboard/users" routerLinkActive="active">
+        <i class="bi bi-shield-lock"></i> Utilisateurs
+      </a>
+      <a *ngIf="authService.currentUserRole() === 'restaurateur'" routerLink="/restaurant-dashboard" routerLinkActive="active">
+        <i class="bi bi-speedometer2"></i> Espace Resto
+      </a>
+    </ng-container>
   </nav>
 
-  <a class="nav-cta" routerLink="/restaurants">Commander</a>
+  <div class="nav-actions">
+    <ng-container *ngIf="!authService.isAuthenticated()">
+      <a class="btn-lux btn-lux-ghost" routerLink="/login" routerLinkActive="active">
+        <i class="bi bi-box-arrow-in-right"></i>
+        <span>Connexion</span>
+      </a>
+      <a class="btn-lux btn-lux-primary" routerLink="/register">
+        <i class="bi bi-stars"></i>
+        <span>Inscription</span>
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="authService.isAuthenticated()">
+      <a class="btn-lux btn-lux-profile" routerLink="/profile" routerLinkActive="active">
+        <img
+          *ngIf="authService.currentUser()?.photoProfil; else navDefaultIcon"
+          [src]="authService.currentUser()?.photoProfil"
+          alt="Avatar"
+          class="nav-avatar"
+        />
+        <ng-template #navDefaultIcon>
+          <i class="bi bi-person-circle"></i>
+        </ng-template>
+        <span>{{ authService.currentUser()?.prenom }}</span>
+      </a>
+      <button type="button" class="btn-lux btn-lux-logout" (click)="onLogout()">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Déconnexion</span>
+      </button>
+    </ng-container>
+  </div>
 </header>

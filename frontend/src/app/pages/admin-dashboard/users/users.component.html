@@ -1,0 +1,197 @@
+<div class="container py-4">
+  
+  <!-- En-tête -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h2 class="fw-bold mb-1 d-flex align-items-center">
+        <i class="bi bi-people-fill text-danger me-2"></i>
+        Gestion des Utilisateurs
+      </h2>
+      <p class="text-muted small mb-0">Consultez, recherchez et gérez les comptes de la plateforme</p>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <span class="badge bg-light text-dark border px-3 py-2 fs-6">
+        Total : <strong class="text-danger">{{ total() }}</strong> utilisateurs
+      </span>
+      <a routerLink="/profile" class="btn btn-outline-secondary btn-sm px-3 py-2">
+        <i class="bi bi-person-circle me-1"></i> Mon Profil
+      </a>
+      <a routerLink="/" class="btn btn-outline-dark btn-sm px-3 py-2">
+        <i class="bi bi-house me-1"></i> Accueil
+      </a>
+    </div>
+  </div>
+
+  <!-- Messages d'alerte -->
+  <div *ngIf="successMessage()" class="alert alert-success py-2 px-3 small rounded-3 mb-3 d-flex align-items-center">
+    <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage() }}
+  </div>
+  <div *ngIf="errorMessage()" class="alert alert-danger py-2 px-3 small rounded-3 mb-3 d-flex align-items-center">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage() }}
+  </div>
+
+  <!-- Carte Filtres et Recherche -->
+  <div class="card shadow-sm border-0 rounded-4 p-3 mb-4 bg-white">
+    <div class="row g-2">
+      <div class="col-12 col-md-7 col-lg-8">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+          <input
+            type="text"
+            [(ngModel)]="search"
+            (keyup.enter)="onSearch()"
+            class="form-control bg-light border-start-0"
+            placeholder="Rechercher par nom, prénom ou email..."
+          />
+          <button (click)="onSearch()" class="btn btn-danger px-3">Rechercher</button>
+        </div>
+      </div>
+      <div class="col-12 col-md-5 col-lg-4">
+        <select [(ngModel)]="roleFilter" (change)="onRoleChange()" class="form-select bg-light">
+          <option value="">Tous les rôles</option>
+          <option value="client">Clients uniquement</option>
+          <option value="restaurateur">Restaurateurs uniquement</option>
+          <option value="admin">Administrateurs uniquement</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des utilisateurs -->
+  <div class="card shadow-sm border-0 rounded-4 overflow-hidden bg-white mb-4">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-secondary text-uppercase fs-7">
+          <tr>
+            <th class="ps-4">Utilisateur</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Rôle</th>
+            <th>Statut</th>
+            <th class="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Indicateur de chargement -->
+          <tr *ngIf="isLoading()">
+            <td colspan="6" class="text-center py-5">
+              <div class="spinner-border text-danger" role="status"></div>
+              <p class="text-muted small mt-2 mb-0">Chargement des utilisateurs...</p>
+            </td>
+          </tr>
+
+          <!-- Liste vide -->
+          <tr *ngIf="!isLoading() && users().length === 0">
+            <td colspan="6" class="text-center py-5">
+              <i class="bi bi-person-x fs-1 text-muted d-block mb-2"></i>
+              <p class="text-muted fw-semibold mb-0">Aucun utilisateur trouvé</p>
+              <small class="text-muted">Essayez de modifier vos critères de recherche.</small>
+            </td>
+          </tr>
+
+          <!-- Lignes du tableau -->
+          <tr *ngFor="let u of users()" [class.table-light]="!u.isActive">
+            <td class="ps-4">
+              <div class="d-flex align-items-center">
+                <div class="bg-danger-subtle text-danger rounded-circle p-2 me-2 d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                  <i class="bi bi-person-fill"></i>
+                </div>
+                <div>
+                  <div class="fw-semibold text-dark">{{ u.prenom }} {{ u.nom }}</div>
+                  <small *ngIf="u._id === currentAdminId" class="badge bg-secondary-subtle text-secondary fs-8">Vous (Admin connecté)</small>
+                </div>
+              </div>
+            </td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.telephone }}</td>
+            <td>
+              <span class="badge rounded-pill px-3 py-1 text-uppercase fs-8"
+                [ngClass]="{
+                  'bg-danger': u.role === 'admin',
+                  'bg-warning text-dark': u.role === 'restaurateur',
+                  'bg-primary': u.role === 'client'
+                }">
+                {{ u.role }}
+              </span>
+            </td>
+            <td>
+              <span *ngIf="u.isActive" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                <i class="bi bi-check-circle-fill me-1"></i> Actif
+              </span>
+              <span *ngIf="!u.isActive" class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                <i class="bi bi-x-circle-fill me-1"></i> Désactivé
+              </span>
+            </td>
+            <td class="text-end pe-4">
+              <button
+                *ngIf="u.isActive"
+                (click)="openConfirmStatus(u, false)"
+                [disabled]="u._id === currentAdminId"
+                class="btn btn-sm btn-outline-danger"
+                [title]="u._id === currentAdminId ? 'Impossible de désactiver votre propre compte' : 'Désactiver ce compte'"
+              >
+                <i class="bi bi-slash-circle me-1"></i> Désactiver
+              </button>
+
+              <button
+                *ngIf="!u.isActive"
+                (click)="openConfirmStatus(u, true)"
+                class="btn btn-sm btn-outline-success"
+                title="Activer ce compte"
+              >
+                <i class="bi bi-check2-circle me-1"></i> Réactiver
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="pages() > 1" class="d-flex justify-content-between align-items-center p-3 border-top bg-light">
+      <span class="small text-muted">Page {{ page() }} sur {{ pages() }}</span>
+      <div class="btn-group">
+        <button [disabled]="page() <= 1" (click)="goToPage(page() - 1)" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-chevron-left"></i> Précédent
+        </button>
+        <button [disabled]="page() >= pages()" (click)="goToPage(page() + 1)" class="btn btn-sm btn-outline-secondary">
+          Suivant <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal de confirmation -->
+<div *ngIf="selectedUser()" class="modal-backdrop-custom d-flex align-items-center justify-content-center">
+  <div class="card shadow-lg border-0 rounded-4 p-4 bg-white modal-box">
+    <div class="text-center mb-3">
+      <div class="d-inline-flex p-3 rounded-circle mb-2" [ngClass]="targetNewStatus() ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+        <i class="bi fs-2" [ngClass]="targetNewStatus() ? 'bi-check-circle' : 'bi-exclamation-triangle'"></i>
+      </div>
+      <h5 class="fw-bold mb-1">
+        {{ targetNewStatus() ? 'Réactiver le compte ?' : 'Désactiver le compte ?' }}
+      </h5>
+      <p class="text-muted small mb-0">
+        Êtes-vous sûr de vouloir {{ targetNewStatus() ? 'réactiver' : 'désactiver' }} le compte de 
+        <strong>{{ selectedUser()?.prenom }} {{ selectedUser()?.nom }}</strong> ({{ selectedUser()?.email }}) ?
+      </p>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <button (click)="cancelConfirmStatus()" [disabled]="isUpdatingStatus()" class="btn btn-light px-3">
+        Annuler
+      </button>
+      <button
+        (click)="confirmStatusChange()"
+        [disabled]="isUpdatingStatus()"
+        class="btn px-3 fw-semibold"
+        [ngClass]="targetNewStatus() ? 'btn-success' : 'btn-danger'"
+      >
+        <span *ngIf="isUpdatingStatus()" class="spinner-border spinner-border-sm me-1"></span>
+        Confirmer
+      </button>
+    </div>
+  </div>
+</div>
