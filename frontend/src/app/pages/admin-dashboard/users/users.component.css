@@ -1,0 +1,25 @@
+/* Admin Users styles */
+.fs-7 {
+  font-size: 0.8rem;
+}
+.fs-8 {
+  font-size: 0.72rem;
+}
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 1050;
+}
+.modal-box {
+  width: 90%;
+  max-width: 440px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

@@ -1,0 +1,78 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+      <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5 bg-white">
+        
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle p-3 mb-3">
+            <i class="bi bi-box-arrow-in-right fs-2"></i>
+          </div>
+          <h2 class="fw-bold mb-1">Connexion</h2>
+          <p class="text-muted small">Accédez à votre espace FoodExpress</p>
+        </div>
+
+        <div *ngIf="errorMessage()" class="alert alert-danger py-2 px-3 small rounded-3 d-flex align-items-center mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <div>{{ errorMessage() }}</div>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="mb-3">
+            <label for="email" class="form-label small fw-semibold text-secondary">Adresse Email</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                class="form-control bg-light border-start-0"
+                placeholder="votre.email@exemple.com"
+                [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              />
+            </div>
+            <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-danger small mt-1">
+              <span *ngIf="loginForm.get('email')?.errors?.['required']">L'email est requis.</span>
+              <span *ngIf="loginForm.get('email')?.errors?.['email']">Format d'email invalide.</span>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="password" class="form-label small fw-semibold text-secondary">Mot de passe</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+              <input
+                id="password"
+                type="password"
+                formControlName="password"
+                class="form-control bg-light border-start-0"
+                placeholder="••••••••"
+                [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+              />
+            </div>
+            <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-danger small mt-1">
+              <span *ngIf="loginForm.get('password')?.errors?.['required']">Le mot de passe est requis.</span>
+              <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Au moins 8 caractères requis.</span>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-danger w-100 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center justify-content-center"
+            [disabled]="loginForm.invalid || isLoading()"
+          >
+            <span *ngIf="isLoading()" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            <span>{{ isLoading() ? 'Connexion en cours...' : 'Se connecter' }}</span>
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-2 border-top">
+          <p class="small text-muted mb-0">
+            Vous n'avez pas de compte ?
+            <a routerLink="/register" class="text-danger fw-semibold text-decoration-none">Inscrivez-vous ici</a>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
