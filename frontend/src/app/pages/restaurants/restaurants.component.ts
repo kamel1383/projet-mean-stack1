@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Restaurant } from '../../core/models/restaurant.model';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   RestaurantFilters,
   RestaurantService,
@@ -9,6 +9,7 @@ import {
 @Component({
   selector: 'app-restaurants',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './restaurants.component.html',
   styleUrl: './restaurants.component.css',
 })

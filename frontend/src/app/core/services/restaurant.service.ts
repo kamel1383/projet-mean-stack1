@@ -95,4 +95,16 @@ export class RestaurantService {
       { statut },
     );
   }
+
+  getRestaurantById(id: string): Observable<Restaurant> {
+    return this.http.get<Restaurant>(`${API_URL}/restaurants/${id}`);
+  }
+
+  createRestaurant(payload: Partial<Restaurant>): Observable<Restaurant> {
+    return this.http.post<Restaurant>(`${API_URL}/restaurants`, payload);
+  }
+
+  updateRestaurant(id: string, payload: Partial<Restaurant>): Observable<Restaurant> {
+    return this.http.put<Restaurant>(`${API_URL}/restaurants/${id}`, payload);
+  }
 }

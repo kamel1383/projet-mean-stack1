@@ -1,0 +1,146 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="m-0">Gestion du menu</h2>
+    <div class="d-flex gap-2">
+      <a routerLink="/restaurant-dashboard/dashboard" class="btn btn-outline-secondary">Tableau de bord</a>
+      <a routerLink="/restaurant-dashboard/manage-orders" class="btn btn-outline-primary">Commandes</a>
+      <a routerLink="/restaurant-dashboard/manage-restaurant" class="btn btn-outline-dark">Mon restaurant</a>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="alert alert-success">{{ success() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="text-center py-5"><div class="spinner-border"></div></div>
+  } @else if (restaurants().length === 0) {
+    <div class="alert alert-warning">
+      Aucun restaurant n'est associé à votre compte restaurateur. Créez d'abord un restaurant pour ajouter des plats.
+    </div>
+  } @else {
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-bold">
+        {{ editingId() ? 'Modifier un plat' : 'Ajouter un nouveau plat' }}
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="submitForm()" class="row g-3">
+          @if (restaurants().length > 1 && !editingId()) {
+            <div class="col-md-4">
+              <label class="form-label">Restaurant</label>
+              <select class="form-select" [(ngModel)]="form.restaurant" name="restaurant" required>
+                @for (r of restaurants(); track r._id) {
+                  <option [value]="r._id">{{ r.nom }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <div class="col-md-4">
+            <label class="form-label">Nom du plat *</label>
+            <input type="text" class="form-control" [(ngModel)]="form.nom" name="nom" required />
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Prix (DT) *</label>
+            <input type="number" step="0.01" min="0" class="form-control" [(ngModel)]="form.prix" name="prix" required />
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Catégorie</label>
+            <input type="text" class="form-control" placeholder="Ex: Pizza, Burger..." [(ngModel)]="form.categorie" name="categorie" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-control" [(ngModel)]="form.description" name="description" />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">URL de l'image</label>
+            <input type="url" class="form-control" placeholder="https://..." [(ngModel)]="form.image" name="image" />
+          </div>
+
+          <div class="col-md-2 d-flex align-items-end">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="dishAvailable" [(ngModel)]="form.disponible" name="disponible" />
+              <label class="form-check-label" for="dishAvailable">Disponible</label>
+            </div>
+          </div>
+
+          <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              {{ editingId() ? 'Mettre à jour' : 'Ajouter le plat' }}
+            </button>
+            @if (editingId()) {
+              <button type="button" class="btn btn-outline-secondary" (click)="resetForm()">Annuler</button>
+            }
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">Mes plats ({{ dishes().length }})</div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Plat</th>
+              <th>Catégorie</th>
+              @if (restaurants().length > 1) {
+                <th>Restaurant</th>
+              }
+              <th class="text-end">Prix</th>
+              <th class="text-center">Disponibilité</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (dish of dishes(); track dish._id) {
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ dish.nom }}</div>
+                  @if (dish.description) {
+                    <small class="text-muted">{{ dish.description }}</small>
+                  }
+                </td>
+                <td>{{ dish.categorie || '—' }}</td>
+                @if (restaurants().length > 1) {
+                  <td>{{ restaurantName(dish) }}</td>
+                }
+                <td class="text-end fw-semibold">{{ dish.prix | number:'1.2-2' }} DT</td>
+                <td class="text-center">
+                  <button
+                    type="button"
+                    class="btn btn-sm"
+                    [class.btn-success]="dish.disponible"
+                    [class.btn-outline-secondary]="!dish.disponible"
+                    (click)="toggleAvailability(dish)"
+                  >
+                    {{ dish.disponible ? 'Disponible' : 'Indisponible' }}
+                  </button>
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-primary" (click)="editDish(dish)">Modifier</button>
+                    <button type="button" class="btn btn-outline-danger" (click)="deleteDish(dish)">Supprimer</button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td [attr.colspan]="restaurants().length > 1 ? 6 : 5" class="text-center text-muted py-4">
+                  Aucun plat enregistré pour le moment.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

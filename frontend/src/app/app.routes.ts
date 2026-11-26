@@ -10,19 +10,18 @@ export const routes: Routes = [
   { path: 'register', loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent) },
   { path: 'profile', canActivate: [authGuard], loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent) },
   { path: 'restaurants', loadComponent: () => import('./pages/restaurants/restaurants.component').then(m => m.RestaurantsComponent) },
-  // Routes des autres membres (à décommenter une fois leurs composants ajoutés dans pages/) :
-  // { path: 'restaurants/:id', loadComponent: () => import('./pages/restaurant-details/restaurant-details.component').then(m => m.RestaurantDetailsComponent) },
+  { path: 'restaurants/:id', loadComponent: () => import('./pages/restaurant-details/restaurant-details.component').then(m => m.RestaurantDetailsComponent) },
 
   // --- Espace client ---
-  // { path: 'cart', loadComponent: () => import('./pages/cart/cart.component').then(m => m.CartComponent) },
-  // {
-  //   path: 'checkout', canActivate: [roleGuard(['client'])],
-  //   loadComponent: () => import('./pages/checkout/checkout.component').then(m => m.CheckoutComponent),
-  // },
-  // {
-  //   path: 'my-orders', canActivate: [roleGuard(['client'])],
-  //   loadComponent: () => import('./pages/my-orders/my-orders.component').then(m => m.MyOrdersComponent),
-  // },
+  { path: 'cart', loadComponent: () => import('./pages/cart/cart.component').then(m => m.CartComponent) },
+  {
+    path: 'checkout', canActivate: [roleGuard(['client'])],
+    loadComponent: () => import('./pages/checkout/checkout.component').then(m => m.CheckoutComponent),
+  },
+  {
+    path: 'my-orders', canActivate: [roleGuard(['client'])],
+    loadComponent: () => import('./pages/my-orders/my-orders.component').then(m => m.MyOrdersComponent),
+  },
 
   // --- Espace restaurateur (Kamel) ---
   {
@@ -31,7 +30,8 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', loadComponent: () => import('./pages/restaurant-dashboard/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'manage-orders', loadComponent: () => import('./pages/restaurant-dashboard/manage-orders/manage-orders.component').then(m => m.ManageOrdersComponent) },
-      // { path: 'manage-dishes', loadComponent: () => import('./pages/restaurant-dashboard/manage-dishes/manage-dishes.component').then(m => m.ManageDishesComponent) },
+      { path: 'manage-dishes', loadComponent: () => import('./pages/restaurant-dashboard/manage-dishes/manage-dishes.component').then(m => m.ManageDishesComponent) },
+      { path: 'manage-restaurant', loadComponent: () => import('./pages/restaurant-dashboard/manage-restaurant/manage-restaurant.component').then(m => m.ManageRestaurantComponent) },
     ],
   },
 
