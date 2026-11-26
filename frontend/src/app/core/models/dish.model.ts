@@ -1,4 +1,5 @@
 // Partie Yassmine : modèles liés aux plats et aux menus
+import type { Restaurant } from './restaurant.model';
 export interface DishCategory {
   _id: string;
   nom: string;
@@ -29,7 +30,7 @@ export interface DishPayload {
 export interface OwnerRestaurant { _id: string; nom: string; }
 
 export interface DishOptions {
-  restaurants: OwnerRestaurant[];
+restaurants: Restaurant[];
   categories: DishCategory[];
 }
 

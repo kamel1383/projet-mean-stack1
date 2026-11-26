@@ -1,0 +1,128 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="m-0">Mon restaurant & catégories</h2>
+    <div class="d-flex gap-2">
+      <a routerLink="/restaurant-dashboard/dashboard" class="btn btn-outline-secondary">Tableau de bord</a>
+      <a routerLink="/restaurant-dashboard/manage-dishes" class="btn btn-outline-primary">Mon menu</a>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="alert alert-success">{{ success() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="text-center py-5"><div class="spinner-border"></div></div>
+  } @else {
+    @if (restaurants().length > 0) {
+      <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+        @for (r of restaurants(); track r._id) {
+          <button
+            type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="selectedRestaurant()?._id === r._id"
+            [class.btn-outline-primary]="selectedRestaurant()?._id !== r._id"
+            (click)="selectRestaurant(r)"
+          >
+            {{ r.nom }} ({{ r.statut }})
+          </button>
+        }
+        <button type="button" class="btn btn-sm btn-outline-success" (click)="selectRestaurant(null)">
+          + Nouveau restaurant
+        </button>
+      </div>
+    }
+
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-bold">
+        {{ selectedRestaurant() ? 'Modifier les informations du restaurant' : 'Créer un restaurant' }}
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="saveRestaurant()" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nom *</label>
+            <input type="text" class="form-control" [(ngModel)]="form.nom" name="nom" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Type de cuisine *</label>
+            <input type="text" class="form-control" placeholder="Ex: Italien, Tunisien..." [(ngModel)]="form.typeCuisine" name="typeCuisine" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description *</label>
+            <textarea class="form-control" rows="2" [(ngModel)]="form.description" name="description" required></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Adresse *</label>
+            <input type="text" class="form-control" [(ngModel)]="form.adresse" name="adresse" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Horaires *</label>
+            <input type="text" class="form-control" placeholder="Ex: 11h00 - 23h00" [(ngModel)]="form.horaires" name="horaires" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Frais de livraison (DT)</label>
+            <input type="number" step="0.1" min="0" class="form-control" [(ngModel)]="form.fraisLivraison" name="fraisLivraison" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">URL de l'image</label>
+            <input type="url" class="form-control" placeholder="https://..." [(ngModel)]="form.image" name="image" />
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="restoOpen" [(ngModel)]="form.isOpen" name="isOpen" />
+              <label class="form-check-label" for="restoOpen">Ouvert</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              {{ selectedRestaurant() ? 'Enregistrer les modifications' : 'Créer le restaurant' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    @if (selectedRestaurant(); as resto) {
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">Catégories de {{ resto.nom }}</div>
+        <div class="card-body">
+          <form (ngSubmit)="saveCategory()" class="row g-2 mb-3">
+            <div class="col-md-4">
+              <input type="text" class="form-control" placeholder="Nom de la catégorie *" [(ngModel)]="catForm.nom" name="catNom" required />
+            </div>
+            <div class="col-md-5">
+              <input type="text" class="form-control" placeholder="Description (optionnelle)" [(ngModel)]="catForm.description" name="catDesc" />
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+              <button type="submit" class="btn btn-outline-primary w-100">
+                {{ editingCatId() ? 'Modifier' : 'Ajouter' }}
+              </button>
+              @if (editingCatId()) {
+                <button type="button" class="btn btn-outline-secondary" (click)="resetCatForm()">Annuler</button>
+              }
+            </div>
+          </form>
+
+          <ul class="list-group">
+            @for (cat of categories(); track cat._id) {
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{{ cat.nom }}</strong>
+                  @if (cat.description) {
+                    <span class="text-muted small ms-2">{{ cat.description }}</span>
+                  }
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editCategory(cat)">Modifier</button>
+              </li>
+            } @empty {
+              <li class="list-group-item text-muted text-center">Aucune catégorie pour ce restaurant.</li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -74,8 +74,7 @@ exports.getMyDishes = async (req, res) => {
 // GET /api/dishes/my-options   (restaurateur : ses restaurants + leurs catégories, pour le formulaire)
 exports.getMyOptions = async (req, res) => {
   try {
-    const restaurants = await Restaurant.find({ owner: userId(req) }).select('nom');
-    const categories = await Category.find({ restaurant: { $in: restaurants.map((r) => r._id) } })
+const restaurants = await Restaurant.find({ owner: userId(req) });    const categories = await Category.find({ restaurant: { $in: restaurants.map((r) => r._id) } })
       .select('nom restaurant')
       .sort({ nom: 1 });
     res.json({ restaurants, categories });

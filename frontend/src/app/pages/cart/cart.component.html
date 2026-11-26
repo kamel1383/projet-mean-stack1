@@ -1,0 +1,96 @@
+<div class="container py-4">
+  <h2 class="mb-4"><i class="bi bi-cart3 me-2"></i>Mon Panier</h2>
+
+  <!-- Panier vide -->
+  <div *ngIf="isEmpty" class="text-center py-5">
+    <i class="bi bi-cart-x display-1 text-muted"></i>
+    <p class="mt-3 text-muted fs-5">Votre panier est vide</p>
+    <a routerLink="/restaurants" class="btn btn-danger mt-2">
+      <i class="bi bi-shop me-1"></i> Parcourir les restaurants
+    </a>
+  </div>
+
+  <!-- Panier avec articles -->
+  <div *ngIf="!isEmpty" class="row g-4">
+    <!-- Liste des articles -->
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">
+          <i class="bi bi-shop me-1"></i> {{ cart.restaurantNom }}
+        </h5>
+        <button class="btn btn-sm btn-outline-danger" (click)="clear()">
+          <i class="bi bi-trash3 me-1"></i> Vider le panier
+        </button>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-3" *ngFor="let item of cart.items">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <!-- Image -->
+            <div class="col-3 col-md-2">
+              <img
+                [src]="item.image || 'https://via.placeholder.com/80x80?text=Plat'"
+                [alt]="item.nom"
+                class="img-fluid rounded"
+                style="width: 80px; height: 80px; object-fit: cover;"
+              />
+            </div>
+            <!-- Détails -->
+            <div class="col-9 col-md-4">
+              <h6 class="mb-1">{{ item.nom }}</h6>
+              <span class="text-muted">{{ item.prix.toFixed(3) }} DT</span>
+            </div>
+            <!-- Quantité -->
+            <div class="col-7 col-md-3 mt-2 mt-md-0">
+              <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-secondary" (click)="decrease(item.dishId)">
+                  <i class="bi bi-dash"></i>
+                </button>
+                <span class="mx-3 fw-bold">{{ item.quantite }}</span>
+                <button class="btn btn-sm btn-outline-secondary" (click)="increase(item.dishId)">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+            </div>
+            <!-- Sous-total ligne + supprimer -->
+            <div class="col-5 col-md-3 mt-2 mt-md-0 text-end">
+              <span class="fw-bold d-block">{{ (item.prix * item.quantite).toFixed(3) }} DT</span>
+              <button class="btn btn-sm text-danger p-0 mt-1" (click)="remove(item.dishId)">
+                <i class="bi bi-x-circle me-1"></i>Retirer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Résumé -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Résumé</h5>
+          <div class="d-flex justify-content-between mb-2">
+            <span>Sous-total</span>
+            <span>{{ subtotal.toFixed(3) }} DT</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span>Frais de livraison</span>
+            <span>{{ deliveryFee.toFixed(3) }} DT</span>
+          </div>
+          <hr />
+          <div class="d-flex justify-content-between mb-3 fw-bold fs-5">
+            <span>Total</span>
+            <span class="text-success">{{ total.toFixed(3) }} DT</span>
+          </div>
+          <a
+            routerLink="/checkout"
+            class="btn btn-danger w-100"
+            [class.disabled]="isEmpty"
+          >
+            <i class="bi bi-bag-check me-1"></i> Passer la commande
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

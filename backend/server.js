@@ -12,11 +12,15 @@ let restaurantRoutes;
 let restaurantOrderRoutes;
 let statsRoutes;
 let categoryRoutes;
+let orderRoutes;
+let dishRoutes;
 
 try { restaurantRoutes = require('./routes/restaurantRoutes'); } catch (e) { /* route optionnelle si absente */ }
 try { restaurantOrderRoutes = require('./routes/restaurantOrderRoutes'); } catch (e) { /* route optionnelle si absente */ }
 try { statsRoutes = require('./routes/statsRoutes'); } catch (e) { /* route optionnelle si absente */ }
 try { categoryRoutes = require('./routes/categoryRoutes'); } catch (e) { /* route optionnelle si absente */ }
+try { orderRoutes = require('./routes/orderRoutes'); } catch (e) { /* route optionnelle si absente */ }
+try { dishRoutes = require('./routes/dishRoutes'); } catch (e) { /* route optionnelle si absente */ }
 
 const app = express();
 
@@ -34,6 +38,9 @@ if (restaurantOrderRoutes) {
   // IMPORTANT : restaurantOrderRoutes avant orderRoutes (sinon /:id capture "restaurant")
   app.use('/api/orders', restaurantOrderRoutes);
 }
+if (orderRoutes) {
+  app.use('/api/orders', orderRoutes);
+}
 if (restaurantRoutes) {
   app.use('/api/restaurants', restaurantRoutes);
 }
@@ -42,6 +49,9 @@ if (statsRoutes) {
 }
 if (categoryRoutes) {
   app.use('/api/categories', categoryRoutes);
+}
+if (dishRoutes) {
+  app.use('/api/dishes', dishRoutes);
 }
 
 // Route de santé (Health check)

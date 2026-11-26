@@ -62,10 +62,20 @@ export class RestaurantDetailsComponent implements OnInit {
   select(id: string) { this.activeSection = id; }
 
   // Règle métier : un plat indisponible ne peut pas être ajouté au panier
-  addToCart(dish: Dish) {
-    if (!dish.disponible || !this.restaurant) return;
-    this.cart.addItem(dish, this.restaurant);
-    this.notice = `« ${dish.nom} » ajouté au panier`;
+  addToCart(dish: Dish): void {
+    const restaurant = this.restaurant;
+    if (!restaurant || !dish.disponible) return;
+
+    const sameRestaurant = this.cart.addToCart(dish, {
+      _id: restaurant._id,
+      nom: restaurant.nom,
+      fraisLivraison: restaurant.fraisLivraison,
+    });
+
+    this.notice = sameRestaurant
+      ? `« ${dish.nom} » ajouté au panier`
+      : `Panier précédent remplacé. « ${dish.nom} » ajouté chez ${restaurant.nom}.`;
+
     clearTimeout(this.noticeTimer);
     this.noticeTimer = setTimeout(() => (this.notice = ''), 2500);
   }

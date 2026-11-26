@@ -1,0 +1,116 @@
+<div class="container py-4">
+  <h2 class="mb-4"><i class="bi bi-credit-card me-2"></i>Finaliser la commande</h2>
+
+  <!-- Confirmation -->
+  <div *ngIf="success" class="alert alert-success text-center">
+    <i class="bi bi-check-circle-fill me-2 fs-4"></i>
+    <strong>Commande confirmée !</strong> Redirection vers vos commandes…
+  </div>
+
+  <div *ngIf="!success" class="row g-4">
+    <!-- Récapitulatif panier -->
+    <div class="col-lg-5 order-lg-2">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-bold">
+          <i class="bi bi-receipt me-1"></i> Récapitulatif
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item" *ngFor="let item of cart.items">
+            <div class="d-flex justify-content-between">
+              <span>{{ item.nom }} <small class="text-muted">×{{ item.quantite }}</small></span>
+              <span class="fw-semibold">{{ (item.prix * item.quantite).toFixed(3) }} DT</span>
+            </div>
+          </li>
+        </ul>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-1">
+            <span>Sous-total</span>
+            <span>{{ subtotal.toFixed(3) }} DT</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span>Frais de livraison</span>
+            <span>{{ deliveryFee.toFixed(3) }} DT</span>
+          </div>
+          <hr />
+          <div class="d-flex justify-content-between fw-bold fs-5">
+            <span>Total</span>
+            <span class="text-success">{{ total.toFixed(3) }} DT</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="col-lg-7 order-lg-1">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div *ngIf="error" class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-1"></i> {{ error }}
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <!-- Adresse -->
+            <div class="mb-3">
+              <label for="adresse" class="form-label fw-semibold">
+                <i class="bi bi-geo-alt me-1"></i> Adresse de livraison *
+              </label>
+              <input
+                id="adresse"
+                type="text"
+                class="form-control"
+                formControlName="adresseLivraison"
+                placeholder="Ex : 12 Rue de la République, Tunis"
+                [class.is-invalid]="form.get('adresseLivraison')?.touched && form.get('adresseLivraison')?.invalid"
+              />
+              <div class="invalid-feedback">L'adresse est obligatoire (min. 5 caractères)</div>
+            </div>
+
+            <!-- Remarque -->
+            <div class="mb-3">
+              <label for="remarque" class="form-label fw-semibold">
+                <i class="bi bi-chat-text me-1"></i> Remarque (optionnel)
+              </label>
+              <textarea
+                id="remarque"
+                class="form-control"
+                formControlName="remarque"
+                rows="2"
+                placeholder="Ex : Sans oignon, 3ème étage…"
+              ></textarea>
+            </div>
+
+            <!-- Mode de paiement -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-wallet2 me-1"></i> Mode de paiement
+              </label>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" id="paieLivraison" formControlName="modePaiement" value="livraison" />
+                <label class="form-check-label" for="paieLivraison">Paiement à la livraison</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" id="paieEnLigne" formControlName="modePaiement" value="en ligne" />
+                <label class="form-check-label" for="paieEnLigne">Paiement en ligne</label>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <a routerLink="/cart" class="btn btn-outline-danger">
+                <i class="bi bi-arrow-left me-1"></i> Retour au panier
+              </a>
+              <button
+                type="submit"
+                class="btn btn-danger flex-grow-1"
+                [disabled]="form.invalid || loading"
+              >
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-1"></span>
+                <i *ngIf="!loading" class="bi bi-check2-circle me-1"></i>
+                {{ loading ? 'Envoi…' : 'Confirmer la commande' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
