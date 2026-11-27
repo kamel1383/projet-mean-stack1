@@ -3,6 +3,38 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../api.config';
 import { User, UserListResponse } from '../models/user.model';
+import { Restaurant } from '../models/restaurant.model';
+
+export interface RestaurateurWithRestaurants extends User {
+  restaurants: Restaurant[];
+}
+
+export interface RestaurateurListResponse {
+  restaurateurs: RestaurateurWithRestaurants[];
+  total: number;
+  page: number;
+  pages: number;
+  limit: number;
+}
+
+export interface CreateRestaurateurPayload {
+  user: {
+    nom: string;
+    prenom: string;
+    email: string;
+    telephone: string;
+    password: string;
+  };
+  restaurant: {
+    nom: string;
+    description: string;
+    adresse: string;
+    typeCuisine: string;
+    image?: string;
+    horaires: string;
+    fraisLivraison: number;
+  };
+}
 
 @Injectable({
   providedIn: 'root',
@@ -52,5 +84,55 @@ export class UserService {
     return this.http.patch<{ message: string; user: User }>(`${API_URL}/users/${userId}/status`, {
       isActive,
     });
+  }
+
+  // --- Gestion des restaurateurs par l'admin ---
+  getRestaurateurs(params?: {
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Observable<RestaurateurListResponse> {
+    let httpParams = new HttpParams();
+    if (params?.search) httpParams = httpParams.set('search', params.search);
+    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
+
+    return this.http.get<RestaurateurListResponse>(`${API_URL}/users/restaurateurs`, {
+      params: httpParams,
+    });
+  }
+
+  createRestaurateurWithRestaurant(payload: CreateRestaurateurPayload): Observable<{
+    message: string;
+    user: User;
+    restaurant: Restaurant;
+    credentials: { email: string; password: string };
+  }> {
+    return this.http.post<{
+      message: string;
+      user: User;
+      restaurant: Restaurant;
+      credentials: { email: string; password: string };
+    }>(`${API_URL}/users/restaurateurs`, payload);
+  }
+
+  updateRestaurateur(
+    id: string,
+    data: { nom?: string; prenom?: string; email?: string; telephone?: string }
+  ): Observable<{ message: string; user: User }> {
+    return this.http.put<{ message: string; user: User }>(
+      `${API_URL}/users/restaurateurs/${id}`,
+      data
+    );
+  }
+
+  resetRestaurateurPassword(
+    id: string,
+    password: string
+  ): Observable<{ message: string; credentials: { email: string; password: string } }> {
+    return this.http.patch<{
+      message: string;
+      credentials: { email: string; password: string };
+    }>(`${API_URL}/users/restaurateurs/${id}/password`, { password });
   }
 }

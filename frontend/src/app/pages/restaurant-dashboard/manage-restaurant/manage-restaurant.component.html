@@ -115,7 +115,10 @@
                     <span class="text-muted small ms-2">{{ cat.description }}</span>
                   }
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editCategory(cat)">Modifier</button>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editCategory(cat)">Modifier</button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteCategory(cat)">Supprimer</button>
+                </div>
               </li>
             } @empty {
               <li class="list-group-item text-muted text-center">Aucune catégorie pour ce restaurant.</li>

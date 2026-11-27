@@ -19,10 +19,13 @@
       <a *ngIf="authService.currentUserRole() === 'admin'" routerLink="/admin-dashboard/users" routerLinkActive="active">
         <i class="bi bi-shield-lock"></i> Utilisateurs
       </a>
+      <a *ngIf="authService.currentUserRole() === 'admin'" routerLink="/admin-dashboard/restaurateurs" routerLinkActive="active">
+        <i class="bi bi-person-badge"></i> Restaurateurs
+      </a>
       <a *ngIf="authService.currentUserRole() === 'admin'" routerLink="/admin-dashboard/restaurants" routerLinkActive="active">
         <i class="bi bi-shop-window"></i> Validation Restos
       </a>
-      <a *ngIf="authService.currentUserRole() === 'restaurateur'" routerLink="/restaurant-dashboard" routerLinkActive="active">
+      <a *ngIf="authService.currentUserRole() === 'restaurateur'" routerLink="/restaurateur/dashboard" routerLinkActive="active">
         <i class="bi bi-speedometer2"></i> Espace Resto
       </a>
     </ng-container>

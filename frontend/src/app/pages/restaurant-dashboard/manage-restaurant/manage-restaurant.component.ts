@@ -1,9 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Restaurant } from '../../../core/models/restaurant.model';
 import { RestaurantService } from '../../../core/services/restaurant.service';
-import { DishService } from '../../../core/services/dish.service';
+import { RestaurateurContextService } from '../../../core/services/restaurateur-context.service';
 import { Category, CategoryService } from '../../../core/services/category.service';
 
 @Component({
@@ -15,14 +15,14 @@ import { Category, CategoryService } from '../../../core/services/category.servi
 })
 export class ManageRestaurantComponent implements OnInit {
   private restaurantService = inject(RestaurantService);
-  private dishService = inject(DishService);
+  private ctx = inject(RestaurateurContextService);
   private categoryService = inject(CategoryService);
 
-  restaurants = signal<Restaurant[]>([]);
+  restaurants = this.ctx.restaurants;
   selectedRestaurant = signal<Restaurant | null>(null);
   categories = signal<Category[]>([]);
 
-  loading = signal(true);
+  loading = this.ctx.loading;
   saving = signal(false);
   error = signal('');
   success = signal('');
@@ -44,26 +44,18 @@ export class ManageRestaurantComponent implements OnInit {
   };
   editingCatId = signal<string | null>(null);
 
-  ngOnInit(): void {
-    this.loadMyRestaurants();
+  constructor() {
+    // Synchronise le formulaire avec le restaurant sélectionné dans le sélecteur global
+    effect(() => {
+      const resto = this.ctx.selectedRestaurant();
+      if (resto) {
+        this.selectRestaurant(resto);
+      }
+    });
   }
 
-  loadMyRestaurants(): void {
-    this.loading.set(true);
-    this.error.set('');
-    this.dishService.getMyDishes().subscribe({
-      next: ({ restaurants }) => {
-        this.restaurants.set(restaurants);
-        if (restaurants.length > 0) {
-          this.selectRestaurant(restaurants[0]);
-        }
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err.error?.message || 'Erreur lors du chargement.');
-        this.loading.set(false);
-      },
-    });
+  ngOnInit(): void {
+    this.ctx.loadMyRestaurants();
   }
 
   selectRestaurant(resto: Restaurant | null): void {
@@ -120,10 +112,10 @@ export class ManageRestaurantComponent implements OnInit {
     req$.subscribe({
       next: (saved) => {
         if (current) {
-          this.restaurants.update((list) => list.map((r) => (r._id === saved._id ? saved : r)));
+          this.ctx.updateLocalRestaurant(saved);
           this.success.set(`Restaurant "${saved.nom}" mis à jour.`);
         } else {
-          this.restaurants.update((list) => [saved, ...list]);
+          this.ctx.loadMyRestaurants(true);
           this.success.set(`Restaurant "${saved.nom}" créé (en attente de validation admin).`);
         }
         this.selectedRestaurant.set(saved);
@@ -170,6 +162,18 @@ export class ManageRestaurantComponent implements OnInit {
       },
       error: (err) => {
         this.error.set(err.error?.message || 'Erreur lors de la sauvegarde de la catégorie.');
+      },
+    });
+  }
+
+  deleteCategory(cat: Category): void {
+    if (!confirm(`Supprimer la catégorie "${cat.nom}" ?`)) return;
+    this.categoryService.deleteCategory(cat._id).subscribe({
+      next: () => {
+        this.categories.update((list) => list.filter((c) => c._id !== cat._id));
+      },
+      error: (err) => {
+        this.error.set(err.error?.message || 'Erreur lors de la suppression de la catégorie.');
       },
     });
   }

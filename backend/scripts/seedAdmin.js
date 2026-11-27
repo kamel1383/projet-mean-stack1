@@ -1,6 +1,7 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const User = require('../models/User');
+const Restaurant = require('../models/Restaurant');
 
 async function seedAdmin() {
   const { ADMIN_EMAIL, ADMIN_PASSWORD, MONGO_URI } = process.env;
@@ -41,6 +42,43 @@ async function seedAdmin() {
         isActive: true,
       });
       console.log('✓ Premier compte administrateur créé avec succès.');
+    }
+
+    // --- Seed d'un compte restaurateur de test + son restaurant ---
+    const restoEmail = (process.env.SEED_RESTO_EMAIL || 'restaurateur@foodexpress.com').toLowerCase().trim();
+    const restoPassword = process.env.SEED_RESTO_PASSWORD || 'Resto1234!';
+
+    let restaurateur = await User.findOne({ email: restoEmail });
+    if (!restaurateur) {
+      restaurateur = await User.create({
+        nom: 'Benali',
+        prenom: 'Karim',
+        email: restoEmail,
+        telephone: '0611223344',
+        password: restoPassword,
+        role: 'restaurateur',
+        isActive: true,
+      });
+      console.log(`✓ Compte restaurateur de test créé : ${restoEmail} / ${restoPassword}`);
+    } else {
+      console.log(`[Seed] Le restaurateur de test (${restoEmail}) existe déjà.`);
+    }
+
+    const existingResto = await Restaurant.findOne({ owner: restaurateur._id });
+    if (!existingResto) {
+      await Restaurant.create({
+        nom: 'Chez Karim Grill',
+        description: 'Spécialités grillades, burgers maison et cuisine méditerranéenne.',
+        adresse: '25 Avenue Habib Bourguiba, Tunis',
+        typeCuisine: 'Grillades & Burgers',
+        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+        fraisLivraison: 4,
+        horaires: '11h00 - 23h30',
+        isOpen: true,
+        owner: restaurateur._id,
+        statut: 'valide',
+      });
+      console.log('✓ Restaurant de test "Chez Karim Grill" créé et validé.');
     }
 
     await mongoose.connection.close();

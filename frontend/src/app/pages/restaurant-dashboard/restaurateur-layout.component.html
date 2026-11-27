@@ -1,0 +1,50 @@
+<div class="container py-4">
+  <!-- En-tête de l'espace restaurateur avec sélecteur de restaurant si plusieurs -->
+  <div class="resto-topbar card shadow-sm border-0 mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <nav class="d-flex flex-wrap gap-2" aria-label="Navigation espace restaurateur">
+        <a routerLink="/restaurateur/dashboard" routerLinkActive="active" class="btn btn-sm btn-outline-dark">
+          <i class="bi bi-speedometer2 me-1"></i> Tableau de bord
+        </a>
+        <a routerLink="/restaurateur/manage-orders" routerLinkActive="active" class="btn btn-sm btn-outline-dark">
+          <i class="bi bi-receipt me-1"></i> Commandes
+        </a>
+        <a routerLink="/restaurateur/manage-dishes" routerLinkActive="active" class="btn btn-sm btn-outline-dark">
+          <i class="bi bi-egg-fried me-1"></i> Plats
+        </a>
+        <a routerLink="/restaurateur/manage-restaurant" routerLinkActive="active" class="btn btn-sm btn-outline-dark">
+          <i class="bi bi-shop me-1"></i> Restaurant & Catégories
+        </a>
+      </nav>
+
+      <!-- Sélecteur affiché en haut de l'espace lorsque le restaurateur gère plusieurs restaurants -->
+      @if (ctx.restaurants().length > 1) {
+        <div class="d-flex align-items-center gap-2">
+          <label for="globalRestoSelect" class="form-label mb-0 fw-semibold small text-muted">
+            Restaurant actif :
+          </label>
+          <select
+            id="globalRestoSelect"
+            class="form-select form-select-sm"
+            style="min-width: 220px"
+            [ngModel]="ctx.selectedRestaurantId()"
+            (ngModelChange)="onRestaurantChange($event)"
+          >
+            @for (r of ctx.restaurants(); track r._id) {
+              <option [value]="r._id">{{ r.nom }} ({{ r.statut }})</option>
+            }
+          </select>
+        </div>
+      } @else if (ctx.selectedRestaurant(); as resto) {
+        <span class="badge bg-light text-dark border px-3 py-2">
+          <i class="bi bi-shop me-1"></i> {{ resto.nom }}
+          <span class="ms-1 badge" [class.bg-success]="resto.isOpen" [class.bg-secondary]="!resto.isOpen">
+            {{ resto.isOpen ? 'Ouvert' : 'Fermé' }}
+          </span>
+        </span>
+      }
+    </div>
+  </div>
+
+  <router-outlet></router-outlet>
+</div>

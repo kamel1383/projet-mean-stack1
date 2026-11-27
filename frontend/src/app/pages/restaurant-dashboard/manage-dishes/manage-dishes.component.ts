@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Restaurant } from '../../../core/models/restaurant.model';
 import { Dish, DishPayload, DishService } from '../../../core/services/dish.service';
+import { RestaurateurContextService } from '../../../core/services/restaurateur-context.service';
 
 @Component({
   selector: 'app-manage-dishes',
@@ -14,9 +15,20 @@ import { Dish, DishPayload, DishService } from '../../../core/services/dish.serv
 })
 export class ManageDishesComponent implements OnInit {
   private dishService = inject(DishService);
+  private ctx = inject(RestaurateurContextService);
 
   restaurants = signal<Restaurant[]>([]);
-  dishes = signal<Dish[]>([]);
+  allDishes = signal<Dish[]>([]);
+  // Filtre automatiquement les plats sur le restaurant actif sélectionné en haut de l'espace
+  dishes = computed<Dish[]>(() => {
+    const selectedId = this.ctx.selectedRestaurantId();
+    const list = this.allDishes();
+    if (!selectedId) return list;
+    return list.filter((d) => {
+      const rId = typeof d.restaurant === 'string' ? d.restaurant : d.restaurant?._id;
+      return rId === selectedId;
+    });
+  });
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -34,6 +46,15 @@ export class ManageDishesComponent implements OnInit {
     restaurant: '',
   };
 
+  constructor() {
+    effect(() => {
+      const selectedId = this.ctx.selectedRestaurantId();
+      if (selectedId && !this.editingId()) {
+        this.form.restaurant = selectedId;
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.loadDishes();
   }
@@ -44,9 +65,10 @@ export class ManageDishesComponent implements OnInit {
     this.dishService.getMyDishes().subscribe({
       next: ({ restaurants, dishes }) => {
         this.restaurants.set(restaurants);
-        this.dishes.set(dishes);
-        if (!this.form.restaurant && restaurants.length > 0) {
-          this.form.restaurant = restaurants[0]._id;
+        this.allDishes.set(dishes);
+        const activeId = this.ctx.selectedRestaurantId();
+        if (!this.form.restaurant && (activeId || restaurants.length > 0)) {
+          this.form.restaurant = activeId || restaurants[0]._id;
         }
         this.loading.set(false);
       },
@@ -66,7 +88,7 @@ export class ManageDishesComponent implements OnInit {
       image: '',
       categorie: '',
       disponible: true,
-      restaurant: this.restaurants()[0]?._id ?? '',
+      restaurant: this.ctx.selectedRestaurantId() || this.restaurants()[0]?._id || '',
     };
   }
 

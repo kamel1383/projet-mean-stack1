@@ -49,7 +49,7 @@ export class LoginComponent {
         if (role === 'admin') {
           this.router.navigate(['/admin-dashboard/users']);
         } else if (role === 'restaurateur') {
-          this.router.navigate(['/restaurant-dashboard']);
+          this.router.navigate(['/restaurateur/dashboard']);
         } else {
           this.router.navigate(['/']);
         }
