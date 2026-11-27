@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { finalize } from 'rxjs';import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DishService } from '../../../core/services/dish.service';
 import { Dish, DishCategory, DishPayload, OwnerRestaurant } from '../../../core/models/dish.model';
@@ -17,7 +17,7 @@ const EMPTY: DishPayload = {
 })
 export class ManageDishesComponent implements OnInit {
   private service = inject(DishService);
-
+private cdr = inject(ChangeDetectorRef);
   dishes: Dish[] = [];
   restaurants: OwnerRestaurant[] = [];
   categories: DishCategory[] = [];
@@ -46,8 +46,7 @@ export class ManageDishesComponent implements OnInit {
 
   load() {
     this.loading = true;
-    this.service.getMine().subscribe({
-      next: (d) => { this.dishes = d; this.loading = false; },
+this.service.getMine().pipe(finalize(() => this.cdr.markForCheck())).subscribe({      next: (d) => { this.dishes = d; this.loading = false; },
       error: (e) => { this.error = e.error?.message || 'Impossible de charger les plats'; this.loading = false; },
     });
   }
@@ -101,8 +100,7 @@ export class ManageDishesComponent implements OnInit {
       ? this.service.update(this.editingId, rest)              // le restaurant n'est pas modifiable
       : this.service.create({ ...rest, restaurant });
 
-    call.subscribe({
-      next: () => {
+call.pipe(finalize(() => this.cdr.markForCheck())).subscribe({      next: () => {
         this.success = this.editingId ? 'Plat modifié' : 'Plat ajouté';
         this.saving = false;
         this.showForm = false;

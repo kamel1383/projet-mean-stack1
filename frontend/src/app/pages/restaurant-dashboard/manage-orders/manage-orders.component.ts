@@ -1,5 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RestaurantOrderService } from '../../../core/services/restaurant-order.service';
 import {
@@ -15,6 +14,7 @@ import {
 })
 export class ManageOrdersComponent implements OnInit {
   private service = inject(RestaurantOrderService);
+  private cdr = inject(ChangeDetectorRef);
 
   orders: Order[] = [];
   selected?: Order;
@@ -30,13 +30,28 @@ export class ManageOrdersComponent implements OnInit {
 
   ngOnInit() { this.load(); }
 
-  load() {
-    this.loading = true;
-    this.service.getOrders({ statut: this.filter || undefined, page: this.page, limit: 10 }).subscribe({
-      next: (r) => { this.orders = r.orders; this.pages = r.pages; this.loading = false; },
-      error: (e) => { this.error = e.error?.message || 'Erreur de chargement'; this.loading = false; },
-    });
-  }
+  load(): void {
+  this.loading = true;
+  this.error = '';
+
+  this.service.getOrders({
+    statut: this.filter || undefined,
+    page: this.page,
+    limit: 10,
+  }).subscribe({
+    next: (result) => {
+      this.orders = result.orders;
+      this.pages = result.pages;
+      this.loading = false;
+      this.cdr.markForCheck();
+    },
+    error: (err) => {
+      this.error = err.error?.message || 'Erreur de chargement';
+      this.loading = false;
+      this.cdr.markForCheck();
+    },
+  });
+}
 
   onFilterChange() { this.page = 1; this.load(); }
 

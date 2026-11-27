@@ -1,11 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { DishService } from '../../core/services/dish.service';
 // Service de Adem : doit exposer addItem(dish, restaurant) — voir README
 import { CartService } from '../../core/services/cart.service';
 import { Dish, DishCategory, RestaurantInfo } from '../../core/models/dish.model';
-
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { forkJoin } from 'rxjs';
 interface MenuSection { id: string; nom: string; dishes: Dish[]; }
 
 @Component({
@@ -19,6 +19,7 @@ export class RestaurantDetailsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private dishService = inject(DishService);
   private cart = inject(CartService);
+  private cdr = inject(ChangeDetectorRef);
 
   restaurant?: RestaurantInfo;
   sections: MenuSection[] = [];
@@ -28,20 +29,32 @@ export class RestaurantDetailsComponent implements OnInit {
   notice = '';
   private noticeTimer?: ReturnType<typeof setTimeout>;
 
-  ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) { this.error = 'Restaurant introuvable'; this.loading = false; return; }
+ ngOnInit(): void {
+  const id = this.route.snapshot.paramMap.get('id');
 
-    this.dishService.getRestaurant(id).subscribe({
-      next: (r) => (this.restaurant = r),
-      error: (e) => { this.error = e.error?.message || 'Restaurant introuvable'; this.loading = false; },
-    });
-
-    this.dishService.getByRestaurant(id).subscribe({
-      next: (dishes) => { this.sections = this.groupByCategory(dishes); this.loading = false; },
-      error: (e) => { this.error = e.error?.message || 'Impossible de charger le menu'; this.loading = false; },
-    });
+  if (!id) {
+    this.error = 'Restaurant introuvable';
+    this.loading = false;
+    return;
   }
+
+  forkJoin({
+    restaurant: this.dishService.getRestaurant(id),
+    dishes: this.dishService.getByRestaurant(id),
+  }).subscribe({
+    next: ({ restaurant, dishes }) => {
+      this.restaurant = restaurant;
+      this.sections = this.groupByCategory(dishes);
+      this.loading = false;
+      this.cdr.markForCheck();
+    },
+    error: (err) => {
+      this.error = err.error?.message || 'Impossible de charger le menu.';
+      this.loading = false;
+      this.cdr.markForCheck();
+    },
+  });
+}
 
   private groupByCategory(dishes: Dish[]): MenuSection[] {
     const map = new Map<string, MenuSection>();
