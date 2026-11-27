@@ -1,3 +1,10 @@
+/**
+ * cart.component.ts — Shopping Cart Page (`/cart`)
+ *
+ * Subscribes to `CartService.cart$` to display all items in the current cart,
+ * adjust quantities (`increase`, `decrease`, `remove`, `clear`), and show
+ * subtotal, delivery fee, and total before proceeding to `/checkout`.
+ */
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';

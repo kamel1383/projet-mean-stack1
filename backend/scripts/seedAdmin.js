@@ -1,3 +1,10 @@
+/**
+ * seedAdmin.js — Admin & Test Restaurateur Seed Script
+ *
+ * Run manually via `node backend/scripts/seedAdmin.js` to create (or update)
+ * the initial Admin account from `.env` (`ADMIN_EMAIL`, `ADMIN_PASSWORD`),
+ * as well as a test Restaurateur account and a validated sample restaurant.
+ */
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const User = require('../models/User');
@@ -20,6 +27,7 @@ async function seedAdmin() {
     await mongoose.connect(MONGO_URI);
     console.log(`[Seed] Connecté à MongoDB : ${mongoose.connection.name}`);
 
+    // Create or synchronize the Admin user
     const emailTrimmed = ADMIN_EMAIL.toLowerCase().trim();
     let admin = await User.findOne({ email: emailTrimmed });
 
@@ -64,6 +72,7 @@ async function seedAdmin() {
       console.log(`[Seed] Le restaurateur de test (${restoEmail}) existe déjà.`);
     }
 
+    // Create a validated restaurant owned by the test restaurateur if none exists yet
     const existingResto = await Restaurant.findOne({ owner: restaurateur._id });
     if (!existingResto) {
       await Restaurant.create({

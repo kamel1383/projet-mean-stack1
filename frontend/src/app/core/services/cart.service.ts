@@ -1,3 +1,11 @@
+/**
+ * cart.service.ts — Shopping Cart State Service
+ *
+ * Manages the customer's shopping cart in memory and persists it to `localStorage`
+ * under `'foodexpress_cart'`. Uses an RxJS `BehaviorSubject` (`cart$`) so the Navbar
+ * badge, Cart page, and Checkout page reactively update whenever items change.
+ * Business rule: A cart can only contain dishes from ONE restaurant at a time.
+ */
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
@@ -32,6 +40,7 @@ export class CartService {
   cart$ = this.cartSubject.asObservable();
 
   /* ---------- persistence ---------- */
+  // Reads saved cart state from localStorage on service initialization
   private loadCart(): CartState {
     try {
       const raw = localStorage.getItem(CART_KEY);
@@ -41,6 +50,7 @@ export class CartService {
     }
   }
 
+  // Saves updated cart state to localStorage and notifies all subscribers via cart$
   private persist(state: CartState): void {
     try {
       localStorage.setItem(CART_KEY, JSON.stringify(state));
@@ -94,6 +104,7 @@ export class CartService {
     return !cartReset; // false = panier réinitialisé (alerte côté composant)
   }
 
+  // Increments the quantity of an existing dish in the cart by 1
   increaseQuantity(dishId: string): void {
     const state = { ...this.cartSubject.value, items: [...this.cartSubject.value.items] };
     const item = state.items.find((i) => i.dishId === dishId);
@@ -103,6 +114,7 @@ export class CartService {
     }
   }
 
+  // Decrements quantity by 1, or removes the item (and resets cart if empty) when quantity reaches 0
   decreaseQuantity(dishId: string): void {
     const state = { ...this.cartSubject.value, items: [...this.cartSubject.value.items] };
     const idx = state.items.findIndex((i) => i.dishId === dishId);
@@ -120,6 +132,7 @@ export class CartService {
     }
   }
 
+  // Removes a specific dish from the cart and clears restaurant info if no items remain
   removeItem(dishId: string): void {
     const state = { ...this.cartSubject.value, items: [...this.cartSubject.value.items] };
     state.items = state.items.filter((i) => i.dishId !== dishId);
@@ -130,24 +143,29 @@ export class CartService {
     }
   }
 
+  // Resets the cart back to an empty state
   clearCart(): void {
     this.persist({ ...emptyCart });
   }
 
   /* ---------- getters ---------- */
 
+  // Sum of (price * quantity) for all items in the cart
   getSubtotal(): number {
     return this.cartSubject.value.items.reduce((sum, i) => sum + i.prix * i.quantite, 0);
   }
 
+  // Delivery fee of the currently selected restaurant
   getDeliveryFee(): number {
     return this.cartSubject.value.fraisLivraison;
   }
 
+  // Grand total = subtotal + delivery fee
   getTotal(): number {
     return this.getSubtotal() + this.getDeliveryFee();
   }
 
+  // Total number of dish units in the cart (used for the Navbar badge)
   getItemCount(): number {
     return this.cartSubject.value.items.reduce((sum, i) => sum + i.quantite, 0);
   }

@@ -1,1 +1,2 @@
+/* manage-dishes.component.css — Truncates long dish descriptions with an ellipsis */
 .desc { max-width: 28ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

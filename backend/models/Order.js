@@ -1,5 +1,14 @@
+/**
+ * Order.js — Mongoose Model for Customer Orders (collection: "orders")
+ *
+ * Stores the client who placed the order, the target restaurant, a snapshot of the ordered
+ * items (`articles`), delivery address, price breakdown (`sousTotal`, `fraisLivraison`, `total`),
+ * payment mode, and lifecycle status (`en_attente` -> `acceptee` -> `en_preparation` -> `en_livraison` -> `livree`, or `annulee`).
+ */
 const mongoose = require('mongoose');
 
+// Sub-schema for each line item inside an order.
+// Storing `nom` and `prixUnitaire` here preserves historical order prices even if the dish changes later.
 const orderArticleSchema = new mongoose.Schema(
   {
     plat: {
@@ -21,21 +30,24 @@ const orderArticleSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { _id: false }
+  { _id: false } // Prevents Mongoose from generating an extra _id for each sub-document
 );
 
 const orderSchema = new mongoose.Schema(
   {
+    // Reference to the client (User) who placed the order
     client: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
+    // Reference to the Restaurant fulfilling the order
     restaurant: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Restaurant',
       required: true,
     },
+    // Array of ordered dishes; custom validator ensures at least 1 item is present
     articles: {
       type: [orderArticleSchema],
       required: true,
@@ -49,14 +61,17 @@ const orderSchema = new mongoose.Schema(
       required: [true, "L'adresse de livraison est obligatoire"],
       trim: true,
     },
+    // Sum of (prixUnitaire * quantite) for all articles
     sousTotal: {
       type: Number,
       required: true,
     },
+    // Delivery fee copied from the Restaurant at order creation time
     fraisLivraison: {
       type: Number,
       required: true,
     },
+    // Final amount = sousTotal + fraisLivraison
     total: {
       type: Number,
       required: true,
@@ -66,6 +81,7 @@ const orderSchema = new mongoose.Schema(
       enum: ['livraison', 'en ligne'],
       default: 'livraison',
     },
+    // Tracks the order's progress from placement to delivery or cancellation
     statut: {
       type: String,
       enum: [

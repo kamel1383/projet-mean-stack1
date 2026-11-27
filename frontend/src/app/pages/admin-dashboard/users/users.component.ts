@@ -1,3 +1,10 @@
+/**
+ * users.component.ts — Admin User Management Page (`/admin-dashboard/users`)
+ *
+ * Lists all platform users with search, role filtering, and pagination.
+ * Allows an admin to activate or deactivate user accounts (with a confirmation modal
+ * and a guard preventing the admin from deactivating their own account).
+ */
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -41,6 +48,7 @@ export class UsersComponent implements OnInit {
     this.fetchUsers();
   }
 
+  // Fetches paginated users from GET /api/users using current search and role filters
   fetchUsers(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
@@ -86,6 +94,7 @@ export class UsersComponent implements OnInit {
     }
   }
 
+  // Opens the confirmation modal; blocks an admin from deactivating their own account
   openConfirmStatus(user: User, newStatus: boolean): void {
     if (user._id === this.currentAdminId && !newStatus) {
       alert('Action interdite : vous ne pouvez pas désactiver votre propre compte administrateur.');
@@ -99,6 +108,7 @@ export class UsersComponent implements OnInit {
     this.selectedUser.set(null);
   }
 
+  // Sends PATCH /api/users/:id/status and updates the user row locally on success
   confirmStatusChange(): void {
     const target = this.selectedUser();
     if (!target) return;

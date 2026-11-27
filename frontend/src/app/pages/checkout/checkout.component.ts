@@ -1,3 +1,10 @@
+/**
+ * checkout.component.ts — Order Checkout Page (`/checkout`)
+ *
+ * Protected by `roleGuard(['client'])`. Redirects back to `/cart` if the cart is empty.
+ * Collects the delivery address, optional note, and payment method, sends the order
+ * to `POST /api/orders` via `OrderService`, clears the cart on success, and redirects to `/my-orders`.
+ */
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -24,6 +31,7 @@ export class CheckoutComponent implements OnInit {
   error = '';
   success = false;
 
+  // Redirects to /cart if empty; otherwise initializes the delivery & payment form
   ngOnInit(): void {
     this.cartService.cart$.subscribe((c) => (this.cart = c));
 
@@ -50,6 +58,7 @@ export class CheckoutComponent implements OnInit {
     return this.cartService.getTotal();
   }
 
+  // Submits the order to POST /api/orders, clears the cart on success, and redirects to /my-orders
   onSubmit(): void {
     if (this.form.invalid || this.loading) return;
     this.loading = true;

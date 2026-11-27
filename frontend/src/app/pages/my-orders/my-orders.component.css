@@ -1,3 +1,4 @@
+/* my-orders.component.css — Subtle hover lift on order cards */
 .card {
   transition: transform 0.15s ease;
 }

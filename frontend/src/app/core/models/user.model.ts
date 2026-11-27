@@ -1,3 +1,9 @@
+/**
+ * user.model.ts — TypeScript Interfaces for Users & Authentication Responses
+ *
+ * Defines `UserRole`, `User`, `AuthResponse` (returned by login/register),
+ * and `UserListResponse` (paginated user list for the admin dashboard).
+ */
 export type UserRole = 'client' | 'restaurateur' | 'admin';
 
 export interface User {

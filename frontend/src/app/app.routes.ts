@@ -1,3 +1,10 @@
+/**
+ * app.routes.ts — Client-Side Routing Table
+ *
+ * Maps URL paths to lazy-loaded standalone components (`loadComponent`).
+ * Protected routes use `authGuard` (must be logged in) or `roleGuard([...])`
+ * (must be logged in AND have one of the specified roles: 'client', 'restaurateur', 'admin').
+ */
 import { Routes } from '@angular/router';
 import { roleGuard } from './core/guards/role.guard';
 import { authGuard } from './core/guards/auth.guard';
@@ -5,9 +12,11 @@ import { authGuard } from './core/guards/auth.guard';
 // ⚠ Les noms de composants des autres membres (HomeComponent, LoginComponent...)
 // sont des hypothèses : adapter les imports si leurs fichiers s'appellent autrement.
 export const routes: Routes = [
+  // Public routes accessible to everyone
   { path: '', pathMatch: 'full', loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent) },
   { path: 'login', loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent) },
+  // Profile requires any authenticated user
   { path: 'profile', canActivate: [authGuard], loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent) },
   { path: 'restaurants', loadComponent: () => import('./pages/restaurants/restaurants.component').then(m => m.RestaurantsComponent) },
   { path: 'restaurants/:id', loadComponent: () => import('./pages/restaurant-details/restaurant-details.component').then(m => m.RestaurantDetailsComponent) },
@@ -24,6 +33,7 @@ export const routes: Routes = [
   },
 
   // --- Espace restaurateur ---
+  // Uses a parent layout component (`RestaurateurLayoutComponent`) with nested child routes
   {
     path: 'restaurateur',
     canActivate: [roleGuard(['restaurateur'])],
@@ -55,5 +65,6 @@ export const routes: Routes = [
     ],
   },
 
+  // Fallback: redirect unknown URLs back to the home page
   { path: '**', redirectTo: '' },
 ];

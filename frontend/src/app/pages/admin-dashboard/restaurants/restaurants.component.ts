@@ -1,3 +1,9 @@
+/**
+ * restaurants.component.ts — Admin Restaurant Moderation Page (`/admin-dashboard/restaurants`)
+ *
+ * Lists all restaurants across the platform (pending, validated, suspended),
+ * with search, status filtering, pagination, and one-click Validate / Suspend buttons.
+ */
 import { Component, OnInit, inject, signal } from '@angular/core';
 
 import {
@@ -32,6 +38,7 @@ export class RestaurantsComponent implements OnInit {
     this.loadRestaurants();
   }
 
+  // Fetches paginated restaurants for admin moderation (all statuses)
   loadRestaurants(page = 1): void {
     this.loading.set(true);
     this.errorMessage.set('');
@@ -92,6 +99,7 @@ if (selectedStatus !== 'all') {
     this.loadRestaurants(1);
   }
 
+  // Approves ('valide') or suspends ('suspendu') a restaurant and reloads the current page
   changeStatus(restaurant: Restaurant, statut: 'valide' | 'suspendu'): void {
     this.busyId.set(restaurant._id);
     this.errorMessage.set('');

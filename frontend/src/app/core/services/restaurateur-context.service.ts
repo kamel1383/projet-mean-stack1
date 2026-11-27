@@ -1,3 +1,10 @@
+/**
+ * restaurateur-context.service.ts — Shared Restaurateur Workspace State
+ *
+ * Holds the list of restaurants owned by the logged-in restaurateur and the
+ * currently selected `restaurantId` using Angular Signals, so switching restaurants
+ * in the sidebar updates Dashboard, Manage Orders, Manage Dishes, and Manage Restaurant.
+ */
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { Restaurant } from '../models/restaurant.model';
 import { RestaurantService } from './restaurant.service';

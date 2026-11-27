@@ -1,3 +1,9 @@
+/**
+ * restaurateur-layout.component.ts — Restaurateur Workspace Shell (`/restaurateur/*`)
+ *
+ * Loads the logged-in restaurateur's restaurants into `RestaurateurContextService` on init
+ * and displays the top navigation bar + active restaurant selector above `<router-outlet>`.
+ */
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';

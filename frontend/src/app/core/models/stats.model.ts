@@ -1,3 +1,9 @@
+/**
+ * stats.model.ts — TypeScript Interfaces for Dashboard Statistics
+ *
+ * Defines the response shapes for `/api/stats/restaurant` (`RestaurantStats`)
+ * and `/api/stats/admin` (`AdminStats`).
+ */
 export interface RestaurantStats {
   totalOrders: number;
   pendingOrders: number;

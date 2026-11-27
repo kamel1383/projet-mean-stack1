@@ -1,3 +1,10 @@
+/**
+ * restaurant-details.component.ts — Public Restaurant Menu Page (`/restaurants/:id`)
+ *
+ * Fetches the restaurant info and its dishes in parallel using RxJS `forkJoin`,
+ * groups dishes into category sections (`MenuSection`), lets the user filter by category,
+ * and adds available dishes to `CartService` (showing a toast notice).
+ */
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { DishService } from '../../core/services/dish.service';
@@ -29,6 +36,7 @@ export class RestaurantDetailsComponent implements OnInit {
   notice = '';
   private noticeTimer?: ReturnType<typeof setTimeout>;
 
+  // Loads restaurant details and its menu dishes in parallel using forkJoin
  ngOnInit(): void {
   const id = this.route.snapshot.paramMap.get('id');
 
@@ -56,6 +64,7 @@ export class RestaurantDetailsComponent implements OnInit {
   });
 }
 
+  // Groups flat dish list into alphabetically sorted category sections for the menu UI
   private groupByCategory(dishes: Dish[]): MenuSection[] {
     const map = new Map<string, MenuSection>();
     for (const d of dishes) {

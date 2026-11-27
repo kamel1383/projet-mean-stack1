@@ -1,3 +1,9 @@
+/**
+ * Restaurant.js — Mongoose Model for Restaurants (collection: "restaurants")
+ *
+ * Represents a restaurant on the platform, including its details, delivery fee,
+ * open/closed toggle (`isOpen`), owner reference (`User`), and admin approval status (`statut`).
+ */
 const mongoose = require('mongoose');
 
 const restaurantSchema = new mongoose.Schema(
@@ -17,6 +23,7 @@ const restaurantSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    // Cuisine category (e.g., "Italienne", "Tunisienne", "Japonaise") used for filtering
     typeCuisine: {
       type: String,
       required: true,
@@ -33,20 +40,24 @@ const restaurantSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    // Opening hours text (e.g., "11h00 - 23h00")
     horaires: {
       type: String,
       required: true,
       trim: true,
     },
+    // Indicates whether the restaurant is currently accepting orders
     isOpen: {
       type: Boolean,
       default: false,
     },
+    // Reference to the User document (with role 'restaurateur') who owns this restaurant
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
+    // Admin moderation status: pending approval, validated (visible to clients), or suspended
     statut: {
       type: String,
       enum: ['en_attente', 'valide', 'suspendu'],

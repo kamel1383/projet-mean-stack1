@@ -1,10 +1,19 @@
+/**
+ * categoryController.js — Menu Category Controller
+ *
+ * Allows anyone to view categories for a validated restaurant, and lets
+ * authenticated restaurateurs create, update, or delete categories
+ * belonging to their own restaurants.
+ */
 const mongoose = require('mongoose');
 const Category = require('../models/Category');
 const Restaurant = require('../models/Restaurant');
 
+// Helper to safely extract the logged-in user's ID from `req.user`
 const getUserId = (req) => req.user?._id || req.user?.id;
 
 // GET /api/categories/restaurant/:restaurantId
+// Public endpoint: returns all menu categories for a validated restaurant, sorted alphabetically.
 exports.getCategoriesByRestaurant = async (req, res) => {
   try {
     const { restaurantId } = req.params;
@@ -34,6 +43,7 @@ exports.getCategoriesByRestaurant = async (req, res) => {
 
 // POST /api/categories
 // Body : { "nom": "Pizzas", "description": "...", "restaurantId": "..." }
+// Creates a new category after verifying the logged-in restaurateur owns the target restaurant.
 exports.createCategory = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -70,6 +80,7 @@ exports.createCategory = async (req, res) => {
 
     return res.status(201).json(category);
   } catch (error) {
+    // MongoDB error code 11000 = duplicate key on the unique (restaurant, nom) index
     if (error.code === 11000) {
       return res.status(409).json({
         message: 'Cette catégorie existe déjà pour ce restaurant',
@@ -82,6 +93,7 @@ exports.createCategory = async (req, res) => {
 };
 // PUT /api/categories/:categoryId
 // Body : { "nom": "Nouveau nom", "description": "..." }
+// Updates a category's name/description if its restaurant belongs to the logged-in restaurateur.
 exports.updateCategory = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -127,6 +139,7 @@ exports.updateCategory = async (req, res) => {
     await category.save();
     return res.json(category);
   } catch (error) {
+    // MongoDB error code 11000 = duplicate key on the unique (restaurant, nom) index
     if (error.code === 11000) {
       return res.status(409).json({
         message: 'Cette catégorie existe déjà pour ce restaurant',

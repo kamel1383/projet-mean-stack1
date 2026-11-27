@@ -1,3 +1,10 @@
+/**
+ * login.component.ts — User Login Page Component (`/login`)
+ *
+ * Uses a Reactive Form (`loginForm`) to validate email/password, calls `AuthService.login()`,
+ * and redirects the user either to `returnUrl` (if redirected by a guard) or to their
+ * role-specific home page (`admin` -> `/admin-dashboard/users`, `restaurateur` -> `/restaurateur/dashboard`, `client` -> `/`).
+ */
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -25,6 +32,7 @@ export class LoginComponent {
   isLoading = signal(false);
   errorMessage = signal('');
 
+  // Validates login form, calls AuthService.login(), and redirects based on returnUrl or user role
   onSubmit(): void {
     if (this.loginForm.invalid || this.isLoading()) {
       this.loginForm.markAllAsTouched();

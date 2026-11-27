@@ -1,3 +1,10 @@
+/**
+ * my-orders.component.ts — Client Order History Page (`/my-orders`)
+ *
+ * Protected by `roleGuard(['client'])`. Fetches the logged-in customer's past and
+ * active orders from `OrderService.getMyOrders()` and maps status codes to French
+ * labels (`STATUS_LABELS`) and Bootstrap badge classes (`STATUS_BADGE`).
+ */
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { OrderService } from '../../core/services/order.service';
@@ -20,6 +27,7 @@ private cdr = inject(ChangeDetectorRef);
   readonly statusLabels = STATUS_LABELS;
   readonly statusBadge = STATUS_BADGE;
 
+  // Fetches the logged-in customer's order history on component initialization
   ngOnInit(): void {
     this.orderService.getMyOrders().subscribe({
       next: (data) => {

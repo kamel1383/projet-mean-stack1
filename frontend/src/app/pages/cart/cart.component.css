@@ -1,3 +1,4 @@
+/* cart.component.css — Subtle hover lift on cart item cards */
 .card {
   transition: transform 0.15s ease;
 }

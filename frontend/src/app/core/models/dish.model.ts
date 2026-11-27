@@ -1,3 +1,9 @@
+/**
+ * dish.model.ts — TypeScript Interfaces for Dishes, Categories, and Restaurant Menu Info
+ *
+ * Mirrors the Mongoose schemas (`Dish`, `Category`, `Restaurant`) so Angular components
+ * and services get compile-time type checking on API payloads and responses.
+ */
 // Partie Yassmine : modèles liés aux plats et aux menus
 import type { Restaurant } from './restaurant.model';
 export interface DishCategory {

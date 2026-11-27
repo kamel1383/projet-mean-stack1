@@ -1,8 +1,16 @@
+/**
+ * seed.hiba.js — Demo Database Seed Script
+ *
+ * Populates the `restogo_dev` MongoDB database with 12 sample restaurants
+ * and default menu categories ("Plats principaux", "Desserts") for testing.
+ * Uses `upsert: true` so running it multiple times won't create duplicates.
+ */
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Restaurant = require('./models/Restaurant');
 const Category = require('./models/Category');
 
+// Sample dataset: [name, cuisineType, isOpen, approvalStatus]
 const exemples = [
   // Nom, cuisine, ouvert, statut
   ['La Table de Tunis', 'Tunisienne', true, 'valide'],
@@ -19,12 +27,17 @@ const exemples = [
   ['Bella Terrasse', 'Italienne', false, 'suspendu'],
 ];
 
+/**
+ * Connects to MongoDB, verifies we are on the `restogo_dev` demo database,
+ * and inserts each sample restaurant + its two default categories if missing.
+ */
 async function seed() {
   const uri = process.env.MONGO_URI;
 
   if (!uri) throw new Error('MONGO_URI est absente du fichier .env');
   await mongoose.connect(uri);
 
+  // Safety guard so this demo script doesn't accidentally write to production
   if (mongoose.connection.name !== 'restogo_dev') {
     throw new Error('Ce script est réservé à la base de démo restogo_dev.');
   }
@@ -33,6 +46,7 @@ async function seed() {
   const owner = new mongoose.Types.ObjectId('660000000000000000000001');
 
   for (const [index, [nom, typeCuisine, isOpen, statut]] of exemples.entries()) {
+    // Find by (owner, nom) and insert only if it doesn't exist yet ($setOnInsert)
     const restaurant = await Restaurant.findOneAndUpdate(
       { owner, nom },
       {
@@ -47,6 +61,7 @@ async function seed() {
       },
 { upsert: true, returnDocument: 'after', runValidators: true },    );
 
+    // Create two default categories for each seeded restaurant
     for (const nomCategorie of ['Plats principaux', 'Desserts']) {
       await Category.updateOne(
         { restaurant: restaurant._id, nom: nomCategorie },

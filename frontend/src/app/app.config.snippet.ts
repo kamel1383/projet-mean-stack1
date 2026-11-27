@@ -1,3 +1,8 @@
+/**
+ * app.config.snippet.ts — Reference Integration Snippet
+ *
+ * Team note showing how to register `authInterceptor` in `app.config.ts` (already merged).
+ */
 // À fusionner dans src/app/app.config.ts (activer l'intercepteur JWT)
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';

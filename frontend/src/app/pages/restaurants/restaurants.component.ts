@@ -1,3 +1,10 @@
+/**
+ * restaurants.component.ts — Public Restaurant Directory Page (`/restaurants`)
+ *
+ * Reads optional `search` and `typeCuisine` URL query params, supports filtering
+ * by name, cuisine, and open/closed status (`openFilter`), and paginates results
+ * from `RestaurantService.getRestaurants()`.
+ */
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Restaurant } from '../../core/models/restaurant.model';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -27,6 +34,7 @@ private route = inject(ActivatedRoute);
   loading = signal(false);
   errorMessage = signal('');
 
+  // Subscribes to URL query params (from Home page search/cuisine chips) and loads page 1
   ngOnInit(): void {
   this.route.queryParamMap.subscribe((params) => {
     this.searchText.set(params.get('search') ?? '');
@@ -35,6 +43,7 @@ private route = inject(ActivatedRoute);
   });
 }
 
+  // Fetches a paginated list of validated restaurants matching the active filters
   loadRestaurants(page = 1): void {
     this.loading.set(true);
     this.errorMessage.set('');

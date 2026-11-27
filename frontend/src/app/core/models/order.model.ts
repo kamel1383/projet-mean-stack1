@@ -1,3 +1,10 @@
+/**
+ * order.model.ts — TypeScript Interfaces & Status Constants for Orders
+ *
+ * Defines the shape of `Order`, `OrderItem`, paginated `OrdersPage`,
+ * UI display labels (`STATUS_LABELS`), Bootstrap badge classes (`STATUS_BADGE`),
+ * and allowed status transitions (`NEXT_STATUS`) matching the backend state machine.
+ */
 export type OrderStatus =
   | 'en_attente' | 'acceptee' | 'en_preparation'
   | 'en_livraison' | 'livree' | 'annulee';

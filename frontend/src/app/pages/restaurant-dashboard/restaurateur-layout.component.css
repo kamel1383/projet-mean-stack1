@@ -1,3 +1,4 @@
+/* restaurateur-layout.component.css — Active tab highlight in the restaurateur top bar */
 .resto-topbar .btn.active {
   background-color: #212529;
   color: #fff;

@@ -1,3 +1,10 @@
+/**
+ * register.component.ts — Client Registration Page Component (`/register`)
+ *
+ * Validates user details, phone format, password strength, and password confirmation
+ * using a custom `passwordMatchValidator`, then calls `AuthService.register()`.
+ * Note: New public sign-ups are always created with the `'client'` role on the backend.
+ */
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -11,6 +18,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
+// Custom cross-field validator ensuring `password` and `confirmation` match
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password')?.value;
   const confirmation = control.get('confirmation')?.value;
@@ -54,6 +62,7 @@ export class RegisterComponent {
   isLoading = signal(false);
   errorMessage = signal('');
 
+  // Validates registration form, creates the client account, and redirects to home
   onSubmit(): void {
     if (this.registerForm.invalid || this.isLoading()) {
       this.registerForm.markAllAsTouched();

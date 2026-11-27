@@ -1,3 +1,10 @@
+/**
+ * profile.component.ts — User Profile & Security Page (`/profile`)
+ *
+ * Lets any logged-in user view their account info, upload/resize a profile picture
+ * (converted to base64 via HTML5 Canvas so it stays under 1 MB), update their name/phone,
+ * or change their password via `UserService`.
+ */
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -79,6 +86,7 @@ export class ProfileComponent implements OnInit {
     this.loadProfile();
   }
 
+  // Fetches the latest profile from GET /api/users/me and syncs it into AuthService & the form
   loadProfile(): void {
     this.userService.getProfile().subscribe({
       next: (res) => {
@@ -104,6 +112,7 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  // Submits updated name and phone number to PUT /api/users/me
   onSaveProfile(): void {
     if (this.profileForm.invalid || this.isSavingProfile()) {
       this.profileForm.markAllAsTouched();
@@ -133,6 +142,7 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  // Submits current & new password to PUT /api/users/me/password
   onChangePassword(): void {
     if (this.passwordForm.invalid || this.isChangingPassword()) {
       this.passwordForm.markAllAsTouched();
@@ -163,6 +173,7 @@ export class ProfileComponent implements OnInit {
       });
   }
 
+  // Reads the chosen image file, resizes it to max 256x256 JPEG base64, and uploads it
   onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -203,6 +214,7 @@ export class ProfileComponent implements OnInit {
     input.value = '';
   }
 
+  // Clears the user's profile picture by sending an empty string to PUT /api/users/me
   onRemovePhoto(): void {
     if (this.isUploadingPhoto()) return;
     this.isUploadingPhoto.set(true);
@@ -223,6 +235,7 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  // Uses an off-screen HTML5 Canvas to downscale an image file and encode it as JPEG base64
   private resizeImageToBase64(file: File, maxWidth: number, maxHeight: number): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();

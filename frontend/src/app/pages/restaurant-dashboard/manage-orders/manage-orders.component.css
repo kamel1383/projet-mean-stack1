@@ -1,1 +1,2 @@
+/* manage-orders.component.css — Prevents table cells from wrapping onto multiple lines */
 .table td, .table th { white-space: nowrap; }

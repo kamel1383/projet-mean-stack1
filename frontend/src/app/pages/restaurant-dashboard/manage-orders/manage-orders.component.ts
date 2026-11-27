@@ -1,3 +1,9 @@
+/**
+ * manage-orders.component.ts — Restaurateur Order Management Page (`/restaurateur/manage-orders`)
+ *
+ * Displays paginated orders for the selected restaurant, lets the restaurateur filter
+ * by status, expand order details, and advance orders along `NEXT_STATUS` transitions.
+ */
 import { ChangeDetectorRef, Component, OnInit, effect, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,6 +49,7 @@ private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnInit() { this.load(); }
 
+  // Fetches paginated orders for the active restaurant and optional status filter
   load() {
     this.loading = true;
     this.service.getOrders({
@@ -71,6 +78,7 @@ error: (e) => {
 
   next(o: Order): OrderStatus[] { return NEXT_STATUS[o.statut]; }
 
+  // Updates an order's status (asks confirmation before cancelling) and updates the row locally
   change(o: Order, statut: OrderStatus) {
     if (statut === 'annulee' && !confirm('Refuser / annuler cette commande ?')) return;
     this.service.updateStatus(o._id, statut).subscribe({

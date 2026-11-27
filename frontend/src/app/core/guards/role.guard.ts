@@ -1,3 +1,11 @@
+/**
+ * role.guard.ts — Role-Based Route Guard
+ *
+ * Restricts routes to specific user roles (`'client'`, `'restaurateur'`, `'admin'`).
+ * - If not logged in -> redirects to `/login` with `returnUrl` query param.
+ * - If account is inactive -> clears session and redirects to `/login`.
+ * - If role doesn't match -> redirects to `/` (home page).
+ */
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
 

@@ -1,3 +1,9 @@
+/**
+ * dishRoutes.js — Menu Dish Routes (mounted at `/api/dishes`)
+ *
+ * Public routes allow browsing dishes; protected `'restaurateur'` routes
+ * allow managing dishes for restaurants owned by the logged-in user.
+ */
 const router = require('express').Router();
 const { protect } = require('../middleware/authMiddleware');
 const { authorize } = require('../middleware/roleMiddleware');

@@ -1,3 +1,10 @@
+/**
+ * authController.js — Authentication Controller
+ *
+ * Handles user registration (`register`) and login (`login`).
+ * Generates signed JWT tokens containing the user's MongoDB `_id` and `role`
+ * so the Angular frontend can authenticate subsequent API requests.
+ */
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -5,6 +12,10 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Au moins 8 caractères, au moins une majuscule, une minuscule et un chiffre
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
+/**
+ * Helper: signs a JWT token with the user's ID and role.
+ * Expiration defaults to 24h if `JWT_EXPIRES_IN` is not set in `.env`.
+ */
 const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, role: user.role },
@@ -13,6 +24,11 @@ const generateToken = (user) => {
   );
 };
 
+/**
+ * POST /api/auth/register
+ * Validates input fields, checks email uniqueness, creates a new user
+ * (always forced to role `'client'` for security), and returns a JWT + user profile.
+ */
 // POST /api/auth/register
 exports.register = async (req, res) => {
   try {
@@ -74,6 +90,11 @@ exports.register = async (req, res) => {
   }
 };
 
+/**
+ * POST /api/auth/login
+ * Looks up the user by email, verifies the password with bcrypt (`matchPassword`),
+ * ensures the account is active, and returns a signed JWT + sanitized user object.
+ */
 // POST /api/auth/login
 exports.login = async (req, res) => {
   try {

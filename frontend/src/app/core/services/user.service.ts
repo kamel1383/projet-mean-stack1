@@ -1,3 +1,12 @@
+/**
+ * user.service.ts — User Profile & Admin User/Restaurateur HTTP Service
+ *
+ * Wraps `/api/users*` endpoints for:
+ * - Logged-in user profile (`getProfile`, `updateProfile`, `changePassword`)
+ * - Admin user management (`getUsers`, `updateUserStatus`)
+ * - Admin restaurateur management (`getRestaurateurs`, `createRestaurateurWithRestaurant`,
+ *   `updateRestaurateur`, `resetRestaurateurPassword`).
+ */
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -80,6 +89,7 @@ export class UserService {
     return this.http.get<UserListResponse>(`${API_URL}/users`, { params: httpParams });
   }
 
+  // Admin: activates or deactivates a user account
   updateUserStatus(userId: string, isActive: boolean): Observable<{ message: string; user: User }> {
     return this.http.patch<{ message: string; user: User }>(`${API_URL}/users/${userId}/status`, {
       isActive,
@@ -102,6 +112,7 @@ export class UserService {
     });
   }
 
+  // Admin: creates a restaurateur account and their first restaurant in one request
   createRestaurateurWithRestaurant(payload: CreateRestaurateurPayload): Observable<{
     message: string;
     user: User;
@@ -116,6 +127,7 @@ export class UserService {
     }>(`${API_URL}/users/restaurateurs`, payload);
   }
 
+  // Admin: updates a restaurateur's personal details (name, email, phone)
   updateRestaurateur(
     id: string,
     data: { nom?: string; prenom?: string; email?: string; telephone?: string }
@@ -126,6 +138,7 @@ export class UserService {
     );
   }
 
+  // Admin: resets a restaurateur's password and returns the new credentials
   resetRestaurateurPassword(
     id: string,
     password: string

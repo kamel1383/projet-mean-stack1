@@ -1,3 +1,11 @@
+/**
+ * auth.service.ts — Authentication & Session State Service
+ *
+ * Manages user registration, login, logout, and reactive session state using Angular Signals.
+ * Stores the JWT token and user object in `localStorage` so the user stays logged in
+ * across page refreshes, and exposes read-only signals (`currentUser`, `isAuthenticated`,
+ * `currentUserRole`) for components like NavbarComponent and guards.
+ */
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -22,6 +30,7 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this.currentUserSignal() && !!this.tokenSignal());
   readonly currentUserRole = computed<UserRole | null>(() => this.currentUserSignal()?.role || null);
 
+  // Safely read the JWT token from browser localStorage
   private getStoredToken(): string | null {
     try {
       return localStorage.getItem('token');
@@ -30,6 +39,7 @@ export class AuthService {
     }
   }
 
+  // Safely parse the cached User JSON from localStorage
   private getStoredUser(): User | null {
     try {
       const raw = localStorage.getItem('user');
@@ -39,6 +49,7 @@ export class AuthService {
     }
   }
 
+  // Persist JWT + user to localStorage and update reactive Angular Signals
   private saveSession(token: string, user: User): void {
     try {
       localStorage.setItem('token', token);
@@ -50,6 +61,7 @@ export class AuthService {
     this.currentUserSignal.set(user);
   }
 
+  // Remove session from localStorage and reset Signals to null
   private clearSession(): void {
     try {
       localStorage.removeItem('token');
@@ -61,6 +73,7 @@ export class AuthService {
     this.currentUserSignal.set(null);
   }
 
+  // Registers a new client account and saves the returned JWT session
   register(data: {
     nom: string;
     prenom: string;
@@ -78,6 +91,7 @@ export class AuthService {
     );
   }
 
+  // Authenticates with email/password and stores the returned JWT + user profile
   login(credentials: { email: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${API_URL}/auth/login`, credentials).pipe(
       tap((res) => {
@@ -88,6 +102,7 @@ export class AuthService {
     );
   }
 
+  // Syncs updated profile data (e.g., new photo or name) into localStorage and Signal
   updateCurrentUser(user: User): void {
     try {
       localStorage.setItem('user', JSON.stringify(user));
@@ -97,6 +112,7 @@ export class AuthService {
     this.currentUserSignal.set(user);
   }
 
+  // Clears the user session and navigates back to the login page
   logout(): void {
     this.clearSession();
     this.router.navigate(['/login']);

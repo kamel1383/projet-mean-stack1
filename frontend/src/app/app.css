@@ -1,3 +1,4 @@
+/* app.css — Sticky-footer flex layout so the footer stays at the bottom on short pages */
 :host {
   display: flex;
   min-height: 100vh;

@@ -1,3 +1,11 @@
+/**
+ * auth.interceptor.ts — HTTP JWT Interceptor
+ *
+ * Automatically intercepts every outgoing Angular `HttpClient` request:
+ * 1. Reads the JWT from `localStorage` and attaches `Authorization: Bearer <token>`.
+ * 2. Listens for 401 Unauthorized responses (expired/invalid token), clears
+ *    the stored session, and redirects the user to `/login`.
+ */
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';

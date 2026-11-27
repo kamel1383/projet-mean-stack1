@@ -1,9 +1,18 @@
+/**
+ * statsController.js — Analytics & Aggregation Controller
+ *
+ * Uses MongoDB aggregation pipelines (`Order.aggregate`) to compute:
+ * - `getRestaurantStats`: order counts, revenue (from delivered orders only), and top 5 dishes
+ *   for the logged-in restaurateur (optionally filtered to one `restaurantId`).
+ * - `getAdminStats`: platform-wide totals for clients, restaurants, orders, revenue, and status breakdown.
+ */
 // Partie Kamel : statistiques restaurateur + admin
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Restaurant = require('../models/Restaurant');
 const User = require('../models/User');
 
+// Helper to extract the current user's ID and build a conditional $sum for MongoDB $group
 const userId = (req) => req.user._id || req.user.id;
 const countIf = (statut) => ({ $sum: { $cond: [{ $eq: ['$statut', statut] }, 1, 0] } });
 
@@ -37,6 +46,7 @@ exports.getRestaurantStats = async (req, res) => {
       },
     ]);
 
+    // Pipeline 2: unwind line items from non-cancelled orders to rank top 5 dishes by quantity
     const topDishes = await Order.aggregate([
       { $match: { ...match, statut: { $ne: 'annulee' } } },
       { $unwind: '$articles' },
@@ -64,6 +74,7 @@ exports.getRestaurantStats = async (req, res) => {
 };
 
 // GET /api/stats/admin   (role: admin)
+// Runs 5 MongoDB queries in parallel to return platform-wide counts, delivered revenue, and status breakdown.
 exports.getAdminStats = async (req, res) => {
   try {
     const [clients, restaurants, orders, revenueAgg, byStatus] = await Promise.all([

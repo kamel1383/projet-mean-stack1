@@ -1,9 +1,17 @@
+/**
+ * dishController.js — Dish / Menu Item Controller
+ *
+ * Handles public dish listing & lookup (`getDishes`, `getDishById`) as well as
+ * restaurateur menu management (`getMyDishes`, `getMyOptions`, `createDish`, `updateDish`, `deleteDish`).
+ * Every write operation verifies that the restaurant belongs to the logged-in restaurateur.
+ */
 // Partie Yassmine : plats et menus
 const mongoose = require('mongoose');
 const Dish = require('../models/Dish');
 const Restaurant = require('../models/Restaurant');
 const Category = require('../models/Category');
 
+// Helper functions for user ID extraction and standardized JSON error responses
 const userId = (req) => req.user._id || req.user.id;
 const bad = (res, message, status = 400) => res.status(status).json({ message });
 const serverError = (res, err) => res.status(500).json({ message: 'Erreur serveur', error: err.message });
@@ -16,6 +24,7 @@ const ownsRestaurant = (req, restaurantId) =>
   Restaurant.exists({ _id: restaurantId, owner: userId(req) });
 
 // Valide les champs reçus ; retourne un message d'erreur ou null
+// When `partial` is true (PUT update), only fields actually present in `body` are validated.
 function validate(body, { partial }) {
   if (!partial || body.nom !== undefined) {
     if (typeof body.nom !== 'string' || !body.nom.trim()) return 'Le nom du plat est obligatoire';
@@ -33,6 +42,7 @@ function validate(body, { partial }) {
 }
 
 // GET /api/dishes?restaurant=&categorie=&disponible=&search=   (public)
+// Public endpoint: lists dishes with optional filters for restaurant, category, availability, and name search.
 exports.getDishes = async (req, res) => {
   try {
     const { restaurant, categorie, disponible, search } = req.query;
@@ -58,6 +68,7 @@ exports.getDishes = async (req, res) => {
 };
 
 // GET /api/dishes/mine   (restaurateur : tous les plats de ses restaurants)
+// Finds all restaurants owned by the logged-in restaurateur, then returns all their dishes.
 exports.getMyDishes = async (req, res) => {
   try {
     const mine = await Restaurant.find({ owner: userId(req) }).select('_id');
@@ -72,6 +83,7 @@ exports.getMyDishes = async (req, res) => {
 };
 
 // GET /api/dishes/my-options   (restaurateur : ses restaurants + leurs catégories, pour le formulaire)
+// Provides dropdown options (restaurants and their categories) for the dish creation/edit form.
 exports.getMyOptions = async (req, res) => {
   try {
 const restaurants = await Restaurant.find({ owner: userId(req) });    const categories = await Category.find({ restaurant: { $in: restaurants.map((r) => r._id) } })
@@ -84,6 +96,7 @@ const restaurants = await Restaurant.find({ owner: userId(req) });    const cate
 };
 
 // GET /api/dishes/:id   (public)
+// Returns a single dish by ID with its category name populated.
 exports.getDishById = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return bad(res, 'Identifiant invalide');
@@ -96,6 +109,7 @@ exports.getDishById = async (req, res) => {
 };
 
 // POST /api/dishes   (restaurateur propriétaire du restaurant)
+// Validates fields, checks restaurant ownership and category consistency, then creates the dish.
 exports.createDish = async (req, res) => {
   try {
     const msg = validate(req.body, { partial: false });
@@ -127,6 +141,7 @@ exports.createDish = async (req, res) => {
 };
 
 // PUT /api/dishes/:id   (modification partielle : infos, prix, disponibilité, catégorie)
+// Updates allowed fields on an existing dish after verifying the user owns its restaurant.
 exports.updateDish = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return bad(res, 'Identifiant invalide');
@@ -157,6 +172,7 @@ exports.updateDish = async (req, res) => {
 };
 
 // DELETE /api/dishes/:id
+// Deletes a dish owned by the restaurateur; past orders retain dish name/price snapshots.
 exports.deleteDish = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return bad(res, 'Identifiant invalide');

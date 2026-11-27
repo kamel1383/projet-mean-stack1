@@ -1,3 +1,9 @@
+/**
+ * navbar.component.ts — Top Navigation Bar Component
+ *
+ * Reads reactive state from `AuthService` (to show login/register vs. role-specific
+ * dashboard links and user profile/logout) and `CartService` (to show the live cart item count).
+ */
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';

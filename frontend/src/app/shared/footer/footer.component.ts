@@ -1,3 +1,8 @@
+/**
+ * footer.component.ts — Site Footer Component
+ *
+ * Displays the brand name and dynamic copyright year at the bottom of every page.
+ */
 import { Component } from '@angular/core';
 
 @Component({

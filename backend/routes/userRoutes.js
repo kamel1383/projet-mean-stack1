@@ -1,3 +1,11 @@
+/**
+ * userRoutes.js — User & Profile Management Routes (mounted at `/api/users`)
+ *
+ * Contains two sections:
+ * 1. Profile endpoints (`/me*`): accessible to any logged-in user (`protect`).
+ * 2. Admin management endpoints (`/`, `/restaurateurs*`, `/:id/status`):
+ *    restricted to users with the `'admin'` role (`protect`, `authorize('admin')`).
+ */
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');

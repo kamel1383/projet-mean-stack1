@@ -1,9 +1,19 @@
+/**
+ * orderController.js — Client Order Controller
+ *
+ * Handles order creation (`createOrder`) and order history retrieval (`getMyOrders`)
+ * for logged-in customers (`'client'` role).
+ * Security note: Dish names, prices, and delivery fees are always fetched from MongoDB
+ * on the server rather than trusting values sent by the frontend.
+ */
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Restaurant = require('../models/Restaurant');
 const Dish = require('../models/Dish');
 
 // POST /api/orders — Passer une commande (client uniquement)
+// Validates request body, verifies restaurant and dish availability in MongoDB,
+// computes subtotal/total server-side, and creates the Order document.
 exports.createOrder = async (req, res) => {
   try {
     const { restaurant, articles, adresseLivraison, modePaiement, remarque } = req.body;
@@ -92,6 +102,7 @@ exports.createOrder = async (req, res) => {
 };
 
 // GET /api/orders/my-orders — Historique du client connecté
+// Returns all orders placed by the logged-in customer, newest first, with restaurant info populated.
 exports.getMyOrders = async (req, res) => {
   try {
     const clientId = req.user._id || req.user.id;

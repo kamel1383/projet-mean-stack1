@@ -1,14 +1,25 @@
+/**
+ * restaurantController.js — Restaurant CRUD & Moderation Controller
+ *
+ * Handles public restaurant listing/details (only `'valide'` restaurants),
+ * restaurateur creation/editing/listing of their own restaurants,
+ * and admin moderation (listing all, approving/suspending, creating for an owner,
+ * and reassigning restaurant ownership).
+ */
 const Restaurant = require('../models/Restaurant');
 const User = require('../models/User');
 const mongoose = require('mongoose');
+// Escapes special regex characters in user search strings to prevent regex injection errors
 const escapeRegex = (value) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // GET /api/restaurants
+// Public endpoint: returns paginated validated restaurants, filtered by name, cuisine, or open status.
 exports.getRestaurants = async (req, res) => {
   try {
     const { search, typeCuisine, isOpen } = req.query;
 
+    // Clamp pagination parameters (page >= 1, limit between 1 and 50)
     const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.min(
       Math.max(Number.parseInt(req.query.limit, 10) || 10, 1),
@@ -25,6 +36,7 @@ exports.getRestaurants = async (req, res) => {
       };
     }
 
+    // Exact case-insensitive match for cuisine type
     if (typeCuisine?.trim()) {
       filter.typeCuisine = {
         $regex: `^${escapeRegex(typeCuisine.trim())}$`,
@@ -38,6 +50,7 @@ exports.getRestaurants = async (req, res) => {
       filter.isOpen = false;
     }
 
+    // Fetch current page and total matching count in parallel
     const [restaurants, total] = await Promise.all([
       Restaurant.find(filter)
         .sort({ nom: 1 })
@@ -58,6 +71,7 @@ exports.getRestaurants = async (req, res) => {
   }
 };
 // GET /api/restaurants/:id
+// Public endpoint: fetches one validated restaurant by its MongoDB ObjectId.
 exports.getRestaurantById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -82,6 +96,7 @@ exports.getRestaurantById = async (req, res) => {
   }
 };
 // POST /api/restaurants
+// Restaurateur endpoint: creates a new restaurant owned by `req.user` with initial status `'en_attente'`.
 exports.createRestaurant = async (req, res) => {
   try {
     const owner = req.user?._id || req.user?.id;
@@ -125,6 +140,7 @@ exports.createRestaurant = async (req, res) => {
   }
 };
 // GET /api/restaurants/admin
+// Admin endpoint: lists all restaurants (including pending/suspended) with owner details populated.
 exports.getAdminRestaurants = async (req, res) => {
   try {
     const { search, statut } = req.query;
@@ -173,6 +189,7 @@ exports.getAdminRestaurants = async (req, res) => {
 
 // PUT /api/restaurants/:id/status
 // Body : { "statut": "valide" } ou { "statut": "suspendu" }
+// Admin endpoint: approves or suspends a restaurant.
 exports.updateRestaurantStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -204,6 +221,7 @@ exports.updateRestaurantStatus = async (req, res) => {
   }
 };
 // PUT /api/restaurants/:id
+// Updates editable restaurant fields. Admins can edit any restaurant; restaurateurs only their own.
 exports.updateRestaurant = async (req, res) => {
   try {
     const user = req.user;
@@ -225,6 +243,7 @@ exports.updateRestaurant = async (req, res) => {
       return res.status(403).json({ message: 'Accès refusé' });
     }
 
+    // Scope query by owner unless the requester is an admin
     const filter = isAdmin
       ? { _id: id }
       : { _id: id, owner: userId };
@@ -235,6 +254,7 @@ exports.updateRestaurant = async (req, res) => {
       return res.status(404).json({ message: 'Restaurant introuvable' });
     }
 
+    // Whitelist of fields allowed to be updated here (prevents changing `statut` or `owner`)
     const editableFields = [
       'nom',
       'description',

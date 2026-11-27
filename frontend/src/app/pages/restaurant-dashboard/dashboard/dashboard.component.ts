@@ -1,3 +1,9 @@
+/**
+ * dashboard.component.ts — Restaurateur KPI Dashboard (`/restaurateur/dashboard`)
+ *
+ * Uses an Angular `effect()` to automatically reload statistics from `StatsService`
+ * whenever the active restaurant changes in `RestaurateurContextService`.
+ */
 import { Component, OnInit, effect, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -34,6 +40,7 @@ export class DashboardComponent implements OnInit {
     this.loadStats(this.ctx.selectedRestaurantId() || undefined);
   }
 
+  // Fetches KPIs and top 5 dishes for the selected restaurant (or all owned restaurants)
   private loadStats(restaurantId?: string) {
     this.loading = true;
     this.statsService.getRestaurantStats(restaurantId).subscribe({

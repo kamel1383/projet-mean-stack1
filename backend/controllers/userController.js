@@ -1,3 +1,13 @@
+/**
+ * userController.js — User Profile & Admin User/Restaurateur Management
+ *
+ * Handles:
+ * - Logged-in user profile actions: `getMe`, `updateMe`, `changePassword`
+ * - Admin user management: `getUsers`, `updateUserStatus` (activate/deactivate)
+ * - Admin restaurateur onboarding & management: `getRestaurateurs`,
+ *   `createRestaurateurWithRestaurant` (with manual rollback if restaurant creation fails),
+ *   `updateRestaurateur`, and `resetRestaurateurPassword`.
+ */
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Restaurant = require('../models/Restaurant');
@@ -6,6 +16,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 // GET /api/users/me (connecté)
+// Returns the currently authenticated user's profile (populated by `protect` middleware).
 exports.getMe = async (req, res) => {
   try {
     // req.user est déjà alimenté par authMiddleware.protect sans le mot de passe
@@ -45,9 +56,11 @@ exports.updateMe = async (req, res) => {
     }
 
     if (photoProfil !== undefined) {
+      // Allow either empty string (remove photo) or a valid base64 PNG/JPEG/WebP data URI
       if (photoProfil !== '' && !/^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/.test(photoProfil)) {
         return res.status(400).json({ message: 'Format d\'image invalide (PNG, JPEG ou WebP requis)' });
       }
+      // Cap encoded image size to ~1.5M characters (~1 MB binary)
       if (photoProfil.length > 1500000) {
         return res.status(400).json({ message: 'La photo de profil est trop volumineuse (max 1 Mo)' });
       }
@@ -76,6 +89,8 @@ exports.updateMe = async (req, res) => {
 };
 
 // PUT /api/users/me/password (connecté)
+// Verifies the user's current password, validates the new password's complexity,
+// and saves it (the User model pre-save hook automatically hashes the new password).
 exports.changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword, confirmation } = req.body;
@@ -125,14 +140,17 @@ exports.changePassword = async (req, res) => {
 };
 
 // GET /api/users?search=&page=&limit= (Admin)
+// Returns a paginated list of users, optionally filtered by name/email search and role.
 exports.getUsers = async (req, res) => {
   try {
     const { search, role } = req.query;
+    // Clamp pagination values to safe bounds (page >= 1, 1 <= limit <= 100)
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
 
     const filter = {};
 
+    // Case-insensitive partial match across nom, prenom, or email
     if (search && search.trim()) {
       const regex = new RegExp(search.trim(), 'i');
       filter.$or = [{ nom: regex }, { prenom: regex }, { email: regex }];
@@ -142,6 +160,7 @@ exports.getUsers = async (req, res) => {
       filter.role = role;
     }
 
+    // Run paginated query and total count in parallel for faster response
     const [users, total] = await Promise.all([
       User.find(filter)
         .select('-password')
@@ -165,6 +184,7 @@ exports.getUsers = async (req, res) => {
 };
 
 // PATCH /api/users/:id/status (Admin)
+// Activates or deactivates a user account. Prevents an admin from deactivating themselves.
 exports.updateUserStatus = async (req, res) => {
   try {
     const { id } = req.params;

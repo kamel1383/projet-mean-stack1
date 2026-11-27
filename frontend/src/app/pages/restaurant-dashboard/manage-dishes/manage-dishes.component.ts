@@ -1,3 +1,9 @@
+/**
+ * manage-dishes.component.ts — Restaurateur Dish & Menu Management Page (`/restaurateur/manage-dishes`)
+ *
+ * Loads the restaurateur's dishes (`getMine()`) and available restaurants/categories (`getMyOptions()`).
+ * Supports creating, editing, deleting dishes, toggling availability inline, and filtering by name.
+ */
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { finalize } from 'rxjs';import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -32,6 +38,7 @@ private cdr = inject(ChangeDetectorRef);
   error = '';
   success = '';
 
+  // Loads dropdown options (restaurants & categories) and all dishes owned by this restaurateur
   ngOnInit() {
     this.service.getMyOptions().subscribe({
       next: (o) => {
@@ -88,6 +95,7 @@ this.service.getMine().pipe(finalize(() => this.cdr.markForCheck())).subscribe({
 
   cancel() { this.showForm = false; this.editingId = null; }
 
+  // Validates dish form and either creates a new dish or updates an existing one
   save() {
     this.clearMessages();
     if (!this.form.nom.trim()) { this.error = 'Le nom du plat est obligatoire'; return; }
@@ -111,6 +119,7 @@ call.pipe(finalize(() => this.cdr.markForCheck())).subscribe({      next: () => 
     });
   }
 
+  // Toggles a dish's `disponible` flag inline via PUT /api/dishes/:id
   toggleAvailability(d: Dish) {
     this.clearMessages();
     this.service.update(d._id, { disponible: !d.disponible }).subscribe({
@@ -119,6 +128,7 @@ call.pipe(finalize(() => this.cdr.markForCheck())).subscribe({      next: () => 
     });
   }
 
+  // Confirms and deletes a dish from the menu, then removes it from the local list
   remove(d: Dish) {
     if (!confirm(`Supprimer « ${d.nom} » ?`)) return;
     this.clearMessages();

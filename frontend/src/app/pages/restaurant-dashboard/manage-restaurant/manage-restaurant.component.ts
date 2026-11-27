@@ -1,3 +1,10 @@
+/**
+ * manage-restaurant.component.ts — Restaurateur Restaurant & Category Management (`/restaurateur/manage-restaurant`)
+ *
+ * Syncs with `RestaurateurContextService` via `effect()` so the restaurateur can edit
+ * their restaurant details (or create a new one, which starts as `'en_attente'`)
+ * and create/edit/delete menu categories for the selected restaurant.
+ */
 import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -58,6 +65,7 @@ export class ManageRestaurantComponent implements OnInit {
     this.ctx.loadMyRestaurants();
   }
 
+  // Populates the form with the chosen restaurant (or resets it to create a new restaurant)
   selectRestaurant(resto: Restaurant | null): void {
     this.selectedRestaurant.set(resto);
     if (resto) {
@@ -87,6 +95,7 @@ export class ManageRestaurantComponent implements OnInit {
     }
   }
 
+  // Fetches menu categories for the selected restaurant
   loadCategories(restaurantId: string): void {
     this.categoryService.getByRestaurant(restaurantId).subscribe({
       next: ({ categories }) => this.categories.set(categories),
@@ -94,6 +103,7 @@ export class ManageRestaurantComponent implements OnInit {
     });
   }
 
+  // Saves changes to an existing restaurant, or creates a new one (pending admin validation)
   saveRestaurant(): void {
     if (!this.form.nom.trim() || !this.form.description.trim() || !this.form.adresse.trim() || !this.form.typeCuisine.trim() || !this.form.horaires.trim()) {
       this.error.set('Veuillez remplir tous les champs obligatoires.');
@@ -138,6 +148,7 @@ export class ManageRestaurantComponent implements OnInit {
     this.catForm = { nom: '', description: '' };
   }
 
+  // Creates a new category or updates the one being edited for the active restaurant
   saveCategory(): void {
     const resto = this.selectedRestaurant();
     if (!resto || !this.catForm.nom.trim()) return;
@@ -166,6 +177,7 @@ export class ManageRestaurantComponent implements OnInit {
     });
   }
 
+  // Confirms and deletes a category from the active restaurant
   deleteCategory(cat: Category): void {
     if (!confirm(`Supprimer la catégorie "${cat.nom}" ?`)) return;
     this.categoryService.deleteCategory(cat._id).subscribe({

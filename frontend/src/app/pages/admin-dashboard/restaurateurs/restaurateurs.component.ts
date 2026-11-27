@@ -1,3 +1,10 @@
+/**
+ * restaurateurs.component.ts — Admin Restaurateur & Restaurant Onboarding Page (`/admin-dashboard/restaurateurs`)
+ *
+ * Full management console for restaurateur accounts and their linked restaurants:
+ * create account + restaurant together, copy generated credentials, edit info,
+ * reset passwords, toggle account status, assign extra restaurants, and transfer ownership.
+ */
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -90,6 +97,7 @@ export class RestaurateursComponent implements OnInit {
     this.loadRestaurateurs();
   }
 
+  // Fetches paginated restaurateurs along with their owned restaurants
   loadRestaurateurs(): void {
     this.loading.set(true);
     this.error.set('');
@@ -127,6 +135,7 @@ export class RestaurateursComponent implements OnInit {
     this.success.set('');
   }
 
+  // Creates a restaurateur account + first restaurant in one call and shows credentials to copy
   submitCreate(): void {
     this.saving.set(true);
     this.error.set('');
@@ -165,6 +174,7 @@ export class RestaurateursComponent implements OnInit {
     };
   }
 
+  // Copies the generated email & password to the clipboard for easy sharing
   copyCredentials(): void {
     const creds = this.createdCredentials();
     if (!creds) return;
@@ -188,6 +198,7 @@ export class RestaurateursComponent implements OnInit {
     this.success.set('');
   }
 
+  // Saves updated personal details (name, email, phone) for a restaurateur
   submitEdit(): void {
     const target = this.editingRestaurateur();
     if (!target) return;
@@ -214,6 +225,7 @@ export class RestaurateursComponent implements OnInit {
     this.success.set('');
   }
 
+  // Resets a restaurateur's password and displays the new credentials banner
   submitResetPassword(): void {
     const target = this.resetPasswordTarget();
     if (!target) return;
@@ -234,6 +246,7 @@ export class RestaurateursComponent implements OnInit {
   }
 
   // --- Activer / Désactiver compte ---
+  // Activates or deactivates a restaurateur's login account
   toggleAccountStatus(r: RestaurateurWithRestaurants): void {
     this.userService.updateUserStatus(r._id, !r.isActive).subscribe({
       next: (res) => {
@@ -262,6 +275,7 @@ export class RestaurateursComponent implements OnInit {
     this.success.set('');
   }
 
+  // Creates an additional restaurant and assigns it to the selected restaurateur
   submitAssignRestaurant(): void {
     const target = this.assignRestoTarget();
     if (!target) return;
@@ -283,6 +297,7 @@ export class RestaurateursComponent implements OnInit {
   }
 
   // --- Valider / Suspendre un restaurant ---
+  // Toggles a restaurant's moderation status between 'valide' and 'suspendu'
   toggleRestaurantStatus(resto: Restaurant): void {
     const nextStatut = resto.statut === 'valide' ? 'suspendu' : 'valide';
     this.restaurantService.updateRestaurantStatus(resto._id, nextStatut).subscribe({
@@ -304,6 +319,7 @@ export class RestaurateursComponent implements OnInit {
     this.success.set('');
   }
 
+  // Transfers ownership of a restaurant to another restaurateur account
   submitChangeOwner(): void {
     const resto = this.changeOwnerTarget();
     if (!resto || !this.newOwnerId) return;
