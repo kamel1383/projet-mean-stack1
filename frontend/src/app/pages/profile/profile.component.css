@@ -1,0 +1,8 @@
+/* Profile styles */
+.fs-7 {
+  font-size: 0.75rem;
+}
+input:focus {
+  box-shadow: none;
+  border-color: #dc3545;
+}

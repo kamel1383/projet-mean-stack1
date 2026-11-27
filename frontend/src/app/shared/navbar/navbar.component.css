@@ -1,0 +1,190 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px max(24px, calc((100% - 1200px) / 2));
+  border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 4px 24px rgba(20, 16, 12, 0.04);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #1c1917;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.brand-icon {
+  font-size: 1.5rem;
+}
+
+.main-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+
+.main-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #57534e;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  padding: 6px 2px;
+  position: relative;
+  transition: color 0.25s ease;
+}
+
+.main-nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #b45309, #dc2626);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+  color: #1c1917;
+}
+
+.main-nav a:hover::after,
+.main-nav a.active::after {
+  width: 100%;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Luxury Button System */
+.btn-lux {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.btn-lux:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Ghost / Connexion */
+.btn-lux-ghost {
+  background: #ffffff;
+  color: #1c1917;
+  border-color: #e7e5e4;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.btn-lux-ghost:hover,
+.btn-lux-ghost.active {
+  border-color: #1c1917;
+  background: #fafaf9;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(28, 25, 23, 0.08);
+}
+
+/* Primary Luxury / Inscription */
+.btn-lux-primary {
+  background: linear-gradient(135deg, #1c1917 0%, #3a2e28 100%);
+  color: #fef3c7;
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 6px 16px rgba(28, 25, 23, 0.22);
+}
+
+.btn-lux-primary:hover {
+  background: linear-gradient(135deg, #292524 0%, #573f33 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(28, 25, 23, 0.3);
+}
+
+/* Profile Pill */
+.btn-lux-profile {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  color: #78350f;
+  border-color: rgba(217, 119, 6, 0.25);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08);
+}
+
+.nav-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(217, 119, 6, 0.5);
+}
+
+.btn-lux-profile:hover,
+.btn-lux-profile.active {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #451a03;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(217, 119, 6, 0.16);
+}
+
+/* Logout Pill */
+.btn-lux-logout {
+  background: #ffffff;
+  color: #b91c1c;
+  border-color: #fecaca;
+  box-shadow: 0 2px 6px rgba(185, 28, 28, 0.05);
+}
+
+.btn-lux-logout:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: #ffffff;
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(185, 28, 28, 0.25);
+}
+
+@media (max-width: 768px) {
+  .site-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .main-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    padding-top: 8px;
+    gap: 14px;
+  }
+
+  .btn-lux {
+    padding: 7px 13px;
+    font-size: 0.84rem;
+  }
+}

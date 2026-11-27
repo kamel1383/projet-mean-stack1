@@ -1,0 +1,147 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-11 col-md-9 col-lg-7">
+      <div class="card shadow-sm border-0 rounded-4 p-4 p-md-5 bg-white">
+
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle p-3 mb-3">
+            <i class="bi bi-person-plus-fill fs-2"></i>
+          </div>
+          <h2 class="fw-bold mb-1">Créer un compte</h2>
+          <p class="text-muted small">Rejoignez FoodExpress en quelques instants</p>
+        </div>
+
+        <div *ngIf="errorMessage()" class="alert alert-danger py-2 px-3 small rounded-3 d-flex align-items-center mb-4">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <div>{{ errorMessage() }}</div>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+              <label for="prenom" class="form-label small fw-semibold text-secondary">Prénom</label>
+              <input
+                id="prenom"
+                type="text"
+                formControlName="prenom"
+                class="form-control bg-light"
+                placeholder="Jean"
+                [class.is-invalid]="registerForm.get('prenom')?.invalid && registerForm.get('prenom')?.touched"
+              />
+              <div *ngIf="registerForm.get('prenom')?.invalid && registerForm.get('prenom')?.touched" class="text-danger small mt-1">
+                Le prénom est requis (min. 2 lettres).
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label for="nom" class="form-label small fw-semibold text-secondary">Nom</label>
+              <input
+                id="nom"
+                type="text"
+                formControlName="nom"
+                class="form-control bg-light"
+                placeholder="Dupont"
+                [class.is-invalid]="registerForm.get('nom')?.invalid && registerForm.get('nom')?.touched"
+              />
+              <div *ngIf="registerForm.get('nom')?.invalid && registerForm.get('nom')?.touched" class="text-danger small mt-1">
+                Le nom est requis (min. 2 lettres).
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label small fw-semibold text-secondary">Adresse Email</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                class="form-control bg-light border-start-0"
+                placeholder="jean.dupont@exemple.com"
+                [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+              />
+            </div>
+            <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="text-danger small mt-1">
+              <span *ngIf="registerForm.get('email')?.errors?.['required']">L'email est requis.</span>
+              <span *ngIf="registerForm.get('email')?.errors?.['email']">Format d'adresse email invalide.</span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="telephone" class="form-label small fw-semibold text-secondary">Numéro de Téléphone</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-telephone"></i></span>
+              <input
+                id="telephone"
+                type="tel"
+                formControlName="telephone"
+                class="form-control bg-light border-start-0"
+                placeholder="0612345678"
+                [class.is-invalid]="registerForm.get('telephone')?.invalid && registerForm.get('telephone')?.touched"
+              />
+            </div>
+            <div *ngIf="registerForm.get('telephone')?.invalid && registerForm.get('telephone')?.touched" class="text-danger small mt-1">
+              Numéro de téléphone requis (au moins 8 chiffres).
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6">
+              <label for="password" class="form-label small fw-semibold text-secondary">Mot de passe</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                <input
+                  id="password"
+                  type="password"
+                  formControlName="password"
+                  class="form-control bg-light border-start-0"
+                  placeholder="••••••••"
+                  [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+                />
+              </div>
+              <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="text-danger small mt-1">
+                Min. 8 car. avec 1 majuscule, 1 minuscule et 1 chiffre.
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label for="confirmation" class="form-label small fw-semibold text-secondary">Confirmation</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-check2-circle"></i></span>
+                <input
+                  id="confirmation"
+                  type="password"
+                  formControlName="confirmation"
+                  class="form-control bg-light border-start-0"
+                  placeholder="••••••••"
+                  [class.is-invalid]="(registerForm.get('confirmation')?.touched && registerForm.get('confirmation')?.invalid) || (registerForm.touched && registerForm.errors?.['passwordsMismatch'])"
+                />
+              </div>
+              <div *ngIf="registerForm.touched && registerForm.errors?.['passwordsMismatch']" class="text-danger small mt-1">
+                Les mots de passe ne correspondent pas.
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-danger w-100 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center justify-content-center"
+            [disabled]="registerForm.invalid || isLoading()"
+          >
+            <span *ngIf="isLoading()" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            <span>{{ isLoading() ? 'Création en cours...' : 'Créer mon compte' }}</span>
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-2 border-top">
+          <p class="small text-muted mb-0">
+            Vous avez déjà un compte ?
+            <a routerLink="/login" class="text-danger fw-semibold text-decoration-none">Connectez-vous</a>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

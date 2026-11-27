@@ -1,0 +1,83 @@
+<header class="site-header">
+  <a class="brand" routerLink="/" aria-label="Accueil RestoGo">
+    <span class="brand-icon">🍽️</span>
+    <span>RestoGo</span>
+  </a>
+
+  <nav class="main-nav" aria-label="Navigation principale">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <i class="bi bi-house-door"></i> Accueil
+    </a>
+    <a routerLink="/restaurants" routerLinkActive="active">
+      <i class="bi bi-shop"></i> Restaurants
+    </a>
+
+    <ng-container *ngIf="authService.isAuthenticated()">
+      <a *ngIf="authService.currentUserRole() === 'admin'" routerLink="/admin-dashboard/statistics" routerLinkActive="active">
+        <i class="bi bi-bar-chart"></i> Statistiques
+      </a>
+      <a *ngIf="authService.currentUserRole() === 'admin'" routerLink="/admin-dashboard/users" routerLinkActive="active">
+        <i class="bi bi-shield-lock"></i> Utilisateurs
+      </a>
+      <a *ngIf="authService.currentUserRole() === 'admin'" routerLink="/admin-dashboard/restaurateurs" routerLinkActive="active">
+        <i class="bi bi-person-badge"></i> Restaurateurs
+      </a>
+      <a *ngIf="authService.currentUserRole() === 'admin'" routerLink="/admin-dashboard/restaurants" routerLinkActive="active">
+        <i class="bi bi-shop-window"></i> Validation Restos
+      </a>
+      <a *ngIf="authService.currentUserRole() === 'restaurateur'" routerLink="/restaurateur/dashboard" routerLinkActive="active">
+        <i class="bi bi-speedometer2"></i> Espace Resto
+      </a>
+    </ng-container>
+  </nav>
+
+  <div class="nav-actions">
+    <!-- Panier (visible pour tous) -->
+    <a class="btn-lux btn-lux-ghost position-relative" routerLink="/cart" routerLinkActive="active">
+      <i class="bi bi-cart3"></i>
+      <span>Panier</span>
+      <span
+        *ngIf="cartCount > 0"
+        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success"
+        style="font-size: 0.65rem"
+      >{{ cartCount }}</span>
+    </a>
+
+    <!-- Mes commandes (clients connectés) -->
+    <a *ngIf="authService.isAuthenticated() && authService.currentUserRole() === 'client'"
+       class="btn-lux btn-lux-ghost" routerLink="/my-orders" routerLinkActive="active">
+      <i class="bi bi-clock-history"></i>
+      <span>Commandes</span>
+    </a>
+
+    <ng-container *ngIf="!authService.isAuthenticated()">
+      <a class="btn-lux btn-lux-ghost" routerLink="/login" routerLinkActive="active">
+        <i class="bi bi-box-arrow-in-right"></i>
+        <span>Connexion</span>
+      </a>
+      <a class="btn-lux btn-lux-primary" routerLink="/register">
+        <i class="bi bi-stars"></i>
+        <span>Inscription</span>
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="authService.isAuthenticated()">
+      <a class="btn-lux btn-lux-profile" routerLink="/profile" routerLinkActive="active">
+        <img
+          *ngIf="authService.currentUser()?.photoProfil; else navDefaultIcon"
+          [src]="authService.currentUser()?.photoProfil"
+          alt="Avatar"
+          class="nav-avatar"
+        />
+        <ng-template #navDefaultIcon>
+          <i class="bi bi-person-circle"></i>
+        </ng-template>
+        <span>{{ authService.currentUser()?.prenom }}</span>
+      </a>
+      <button type="button" class="btn-lux btn-lux-logout" (click)="onLogout()">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Déconnexion</span>
+      </button>
+    </ng-container>
+  </div>
+</header>

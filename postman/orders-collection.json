@@ -1,0 +1,65 @@
+{
+  "info": {
+    "name": "FoodExpress — Commandes Client",
+    "description": "Collection Postman pour les endpoints de commande côté client (Panier & Commandes)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "POST — Passer une commande",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/orders",
+          "host": ["{{baseUrl}}"],
+          "path": ["orders"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"restaurant\": \"REMPLACER_PAR_RESTAURANT_ID\",\n  \"articles\": [\n    {\n      \"plat\": \"REMPLACER_PAR_DISH_ID_1\",\n      \"quantite\": 2\n    },\n    {\n      \"plat\": \"REMPLACER_PAR_DISH_ID_2\",\n      \"quantite\": 1\n    }\n  ],\n  \"adresseLivraison\": \"12 Rue de la République, Tunis\",\n  \"modePaiement\": \"livraison\",\n  \"remarque\": \"Sans oignon svp\"\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET — Mes commandes (historique)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/orders/my-orders",
+          "host": ["{{baseUrl}}"],
+          "path": ["orders", "my-orders"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

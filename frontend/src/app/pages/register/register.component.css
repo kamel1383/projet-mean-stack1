@@ -1,0 +1,8 @@
+/* Register styles */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+input:focus {
+  box-shadow: none;
+  border-color: #dc3545;
+}
