@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, effect, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RestaurantOrderService } from '../../../core/services/restaurant-order.service';
+import { RestaurateurContextService } from '../../../core/services/restaurateur-context.service';
 import {
   NEXT_STATUS, Order, OrderStatus, STATUS_BADGE, STATUS_LABELS,
 } from '../../../core/models/order.model';
@@ -15,7 +16,8 @@ import {
 })
 export class ManageOrdersComponent implements OnInit {
   private service = inject(RestaurantOrderService);
-
+  private ctx = inject(RestaurateurContextService);
+private readonly cdr = inject(ChangeDetectorRef);
   orders: Order[] = [];
   selected?: Order;
   filter = '';
@@ -28,14 +30,39 @@ export class ManageOrdersComponent implements OnInit {
   badges = STATUS_BADGE;
   statusList = Object.keys(STATUS_LABELS) as OrderStatus[];
 
+  constructor() {
+    // Recharge les commandes lorsque le restaurant sélectionné change
+    effect(() => {
+      const selectedId = this.ctx.selectedRestaurantId();
+      if (selectedId) {
+        this.page = 1;
+        this.load();
+      }
+    });
+  }
+
   ngOnInit() { this.load(); }
 
   load() {
     this.loading = true;
-    this.service.getOrders({ statut: this.filter || undefined, page: this.page, limit: 10 }).subscribe({
-      next: (r) => { this.orders = r.orders; this.pages = r.pages; this.loading = false; },
-      error: (e) => { this.error = e.error?.message || 'Erreur de chargement'; this.loading = false; },
-    });
+    this.service.getOrders({
+      statut: this.filter || undefined,
+      restaurantId: this.ctx.selectedRestaurantId() || undefined,
+      page: this.page,
+      limit: 10,
+    }).subscribe({
+      next: (r) => {
+  this.orders = r.orders;
+  this.pages = r.pages;
+  this.error = '';
+  this.loading = false;
+  this.cdr.markForCheck();
+},
+error: (e) => {
+  this.error = e.error?.message || 'Erreur de chargement';
+  this.loading = false;
+  this.cdr.markForCheck();
+},   });
   }
 
   onFilterChange() { this.page = 1; this.load(); }

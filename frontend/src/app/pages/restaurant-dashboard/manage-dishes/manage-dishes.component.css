@@ -1,3 +1,1 @@
-.table td {
-  vertical-align: middle;
-}
+.desc { max-width: 28ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -23,9 +23,14 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/my-orders/my-orders.component').then(m => m.MyOrdersComponent),
   },
 
-  // --- Espace restaurateur (Kamel) ---
+  // --- Espace restaurateur ---
   {
-    path: 'restaurant-dashboard', canActivate: [roleGuard(['restaurateur'])],
+    path: 'restaurateur',
+    canActivate: [roleGuard(['restaurateur'])],
+    loadComponent: () =>
+      import('./pages/restaurant-dashboard/restaurateur-layout.component').then(
+        (m) => m.RestaurateurLayoutComponent
+      ),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', loadComponent: () => import('./pages/restaurant-dashboard/dashboard/dashboard.component').then(m => m.DashboardComponent) },
@@ -34,6 +39,9 @@ export const routes: Routes = [
       { path: 'manage-restaurant', loadComponent: () => import('./pages/restaurant-dashboard/manage-restaurant/manage-restaurant.component').then(m => m.ManageRestaurantComponent) },
     ],
   },
+  // Redirection de compatibilité depuis l'ancien chemin
+  { path: 'restaurant-dashboard', redirectTo: 'restaurateur/dashboard', pathMatch: 'full' },
+  { path: 'restaurant-dashboard/:sub', redirectTo: 'restaurateur/:sub', pathMatch: 'full' },
 
   // --- Espace administrateur ---
   {
@@ -42,6 +50,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'statistics' },
       { path: 'statistics', loadComponent: () => import('./pages/admin-dashboard/statistics/statistics.component').then(m => m.StatisticsComponent) },
       { path: 'users', loadComponent: () => import('./pages/admin-dashboard/users/users.component').then(m => m.UsersComponent) },
+      { path: 'restaurateurs', loadComponent: () => import('./pages/admin-dashboard/restaurateurs/restaurateurs.component').then(m => m.RestaurateursComponent) },
       { path: 'restaurants', loadComponent: () => import('./pages/admin-dashboard/restaurants/restaurants.component').then(m => m.RestaurantsComponent) },
     ],
   },

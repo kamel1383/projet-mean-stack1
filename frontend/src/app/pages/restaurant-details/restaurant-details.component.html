@@ -1,98 +1,75 @@
 <div class="container py-4">
-  <div class="mb-3">
-    <a routerLink="/restaurants" class="btn btn-outline-secondary btn-sm">← Retour aux restaurants</a>
-  </div>
+  @if (error) { <div class="alert alert-danger">{{ error }}</div> }
 
-  @if (loading()) {
-    <div class="text-center py-5">
-      <div class="spinner-border" role="status"></div>
-    </div>
-  } @else if (error()) {
-    <div class="alert alert-danger">{{ error() }}</div>
-  } @else if (restaurant(); as resto) {
-    <div class="card mb-4 shadow-sm overflow-hidden">
-      <div class="row g-0 align-items-center">
-        @if (resto.image) {
-          <div class="col-md-4">
-            <img [src]="resto.image" [alt]="resto.nom" class="img-fluid resto-banner" />
-          </div>
-        }
-        <div [class]="resto.image ? 'col-md-8' : 'col-12'">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-              <h2 class="card-title mb-1">{{ resto.nom }}</h2>
-              <span class="badge" [class.bg-success]="resto.isOpen" [class.bg-secondary]="!resto.isOpen">
-                {{ resto.isOpen ? 'Ouvert' : 'Fermé' }}
-              </span>
-            </div>
-            <p class="text-muted mb-2">{{ resto.typeCuisine }} · {{ resto.adresse }}</p>
-            <p class="mb-2">{{ resto.description }}</p>
-            <div class="d-flex gap-4 small text-muted flex-wrap">
-              <span><strong>Horaires :</strong> {{ resto.horaires }}</span>
-              <span><strong>Livraison :</strong> {{ resto.fraisLivraison | number:'1.2-2' }} DT</span>
-            </div>
-          </div>
+  @if (restaurant) {
+    <header class="resto-header mb-4">
+      <div>
+        <h1 class="h2 mb-1">{{ restaurant.nom }}</h1>
+        @if (restaurant.description) { <p class="text-muted mb-2">{{ restaurant.description }}</p> }
+        <div class="small text-muted d-flex flex-wrap gap-3">
+          @if (restaurant.typeCuisine) { <span>{{ restaurant.typeCuisine }}</span> }
+          @if (restaurant.adresse) { <span>{{ restaurant.adresse }}</span> }
+          @if (restaurant.horaires) { <span>{{ restaurant.horaires }}</span> }
+          <span>Livraison : {{ restaurant.fraisLivraison | number:'1.2-2' }} DT</span>
         </div>
       </div>
+      @if (restaurant.isOpen !== undefined) {
+        <span class="badge fs-6" [class]="restaurant.isOpen ? 'badge fs-6 bg-success' : 'badge fs-6 bg-secondary'">
+          {{ restaurant.isOpen ? 'Ouvert' : 'Fermé' }}
+        </span>
+      }
+    </header>
+  }
+
+  @if (notice) {
+    <div class="alert alert-success d-flex justify-content-between align-items-center" role="status">
+      <span>{{ notice }}</span>
+      <a routerLink="/cart" class="alert-link">Voir le panier</a>
     </div>
+  }
 
-    @if (feedback()) {
-      <div
-        class="alert d-flex justify-content-between align-items-center"
-        [class.alert-success]="feedbackType() === 'success'"
-        [class.alert-warning]="feedbackType() === 'warning'"
-      >
-        <span>{{ feedback() }}</span>
-        <a routerLink="/cart" class="btn btn-sm btn-dark ms-3">Voir le panier</a>
-      </div>
-    }
+  @if (loading) {
+    <div class="text-center py-5"><div class="spinner-border"></div></div>
+  } @else if (!sections.length && !error) {
+    <p class="text-muted">Ce restaurant n'a pas encore de plats au menu.</p>
+  } @else {
+    <nav class="category-nav mb-4" aria-label="Catégories du menu">
+      <button type="button" class="btn btn-sm" [class]="activeSection === '' ? 'btn btn-sm btn-dark' : 'btn btn-sm btn-outline-dark'"
+              (click)="select('')">Tout</button>
+      @for (s of sections; track s.id) {
+        <button type="button" class="btn btn-sm"
+                [class]="activeSection === s.id ? 'btn btn-sm btn-dark' : 'btn btn-sm btn-outline-dark'"
+                (click)="select(s.id)">{{ s.nom }}</button>
+      }
+    </nav>
 
-    <h3 class="mb-3">Menu</h3>
-
-    @if (dishes().length === 0) {
-      <div class="alert alert-info">Aucun plat n'est encore disponible pour ce restaurant.</div>
-    } @else {
-      <div class="row g-3">
-        @for (dish of dishes(); track dish._id) {
-          <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-              @if (dish.image) {
-                <img [src]="dish.image" [alt]="dish.nom" class="card-img-top dish-image" />
-              }
-              <div class="card-body d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                  <h5 class="card-title mb-0">{{ dish.nom }}</h5>
-                  @if (dish.categorie) {
-                    <span class="badge bg-light text-dark border">{{ dish.categorie }}</span>
-                  }
-                </div>
-                @if (dish.description) {
-                  <p class="card-text text-muted small flex-grow-1">{{ dish.description }}</p>
-                } @else {
-                  <div class="flex-grow-1"></div>
-                }
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                  <span class="fw-bold fs-5">{{ dish.prix | number:'1.2-2' }} DT</span>
-                  <button
-                    type="button"
-                    class="btn btn-primary btn-sm"
-                    [disabled]="!dish.disponible || !resto.isOpen"
-                    (click)="addToCart(dish)"
-                  >
-                    @if (!dish.disponible) {
-                      Indisponible
-                    } @else if (!resto.isOpen) {
-                      Fermé
+    @for (s of visibleSections; track s.id) {
+      <section class="mb-5">
+        <h2 class="h4 mb-3">{{ s.nom }}</h2>
+        <div class="row g-3">
+          @for (d of s.dishes; track d._id) {
+            <div class="col-12 col-md-6">
+              <article class="dish-card card h-100" [class.unavailable]="!d.disponible">
+                <div class="card-body d-flex gap-3">
+                  @if (d.image) { <img [src]="d.image" [alt]="d.nom" class="dish-img" loading="lazy"> }
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between gap-2">
+                      <h3 class="h6 mb-1">{{ d.nom }}</h3>
+                      <strong class="text-nowrap">{{ d.prix | number:'1.2-2' }} DT</strong>
+                    </div>
+                    @if (d.description) { <p class="small text-muted mb-2">{{ d.description }}</p> }
+                    @if (d.disponible) {
+                      <button type="button" class="btn btn-sm btn-success" (click)="addToCart(d)">Ajouter au panier</button>
                     } @else {
-                      + Ajouter
+                      <span class="badge bg-secondary">Indisponible</span>
                     }
-                  </button>
+                  </div>
                 </div>
-              </div>
+              </article>
             </div>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      </section>
     }
   }
 </div>

@@ -1,0 +1,354 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="m-0">Gestion des restaurateurs</h2>
+      <small class="text-muted">Créez et administrez les comptes restaurateurs et leurs restaurants</small>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="toggleCreateForm()">
+      <i class="bi bi-plus-circle me-1"></i>
+      {{ showCreateForm() ? 'Fermer le formulaire' : 'Nouveau restaurateur' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="alert alert-success">{{ success() }}</div>
+  }
+
+  <!-- Identifiants créés ou réinitialisés avec bouton Copier -->
+  @if (createdCredentials(); as creds) {
+    <div class="alert alert-info shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <div class="fw-bold mb-1">
+          <i class="bi bi-key me-1"></i> Identifiants à transmettre au restaurateur :
+        </div>
+        <div><strong>Email :</strong> <code>{{ creds.email }}</code></div>
+        <div><strong>Mot de passe :</strong> <code>{{ creds.password }}</code></div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-dark btn-sm" (click)="copyCredentials()">
+          <i class="bi" [class.bi-clipboard-check]="copied()" [class.bi-clipboard]="!copied()"></i>
+          {{ copied() ? 'Copié !' : 'Copier' }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="createdCredentials.set(null)">
+          Fermer
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Formulaire de création combinée Restaurateur + Restaurant -->
+  @if (showCreateForm()) {
+    <div class="card shadow-sm mb-4 border-primary">
+      <div class="card-header bg-primary text-white fw-bold">
+        Nouveau restaurateur et son restaurant
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="submitCreate()" class="row g-3">
+          <div class="col-12">
+            <h6 class="text-primary border-bottom pb-1">1. Compte du restaurateur</h6>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Nom *</label>
+            <input type="text" class="form-control" [(ngModel)]="createForm.user.nom" name="uNom" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Prénom *</label>
+            <input type="text" class="form-control" [(ngModel)]="createForm.user.prenom" name="uPrenom" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Téléphone *</label>
+            <input type="text" class="form-control" [(ngModel)]="createForm.user.telephone" name="uTel" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email *</label>
+            <input type="email" class="form-control" [(ngModel)]="createForm.user.email" name="uEmail" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Mot de passe * (min. 8 car., maj, min, chiffre)</label>
+            <input type="text" class="form-control" [(ngModel)]="createForm.user.password" name="uPass" required />
+          </div>
+
+          <div class="col-12 mt-4">
+            <h6 class="text-primary border-bottom pb-1">2. Restaurant associé</h6>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Nom du restaurant *</label>
+            <input type="text" class="form-control" [(ngModel)]="createForm.restaurant.nom" name="rNom" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Type de cuisine *</label>
+            <input type="text" class="form-control" [(ngModel)]="createForm.restaurant.typeCuisine" name="rCuisine" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description *</label>
+            <textarea class="form-control" rows="2" [(ngModel)]="createForm.restaurant.description" name="rDesc" required></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Adresse *</label>
+            <input type="text" class="form-control" [(ngModel)]="createForm.restaurant.adresse" name="rAdresse" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Horaires *</label>
+            <input type="text" class="form-control" [(ngModel)]="createForm.restaurant.horaires" name="rHoraires" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Frais de livraison (DT)</label>
+            <input type="number" min="0" step="0.5" class="form-control" [(ngModel)]="createForm.restaurant.fraisLivraison" name="rFrais" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">URL de l'image</label>
+            <input type="url" class="form-control" placeholder="https://..." [(ngModel)]="createForm.restaurant.image" name="rImg" />
+          </div>
+
+          <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              {{ saving() ? 'Création en cours...' : 'Créer le restaurateur et le restaurant' }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="toggleCreateForm()">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modales d'actions rapides (inline cards) -->
+  @if (editingRestaurateur(); as target) {
+    <div class="card shadow-sm mb-4 border-warning">
+      <div class="card-header bg-warning-subtle fw-bold">
+        Modifier les informations de {{ target.prenom }} {{ target.nom }}
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="submitEdit()" class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Nom</label>
+            <input type="text" class="form-control" [(ngModel)]="editForm.nom" name="eNom" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Prénom</label>
+            <input type="text" class="form-control" [(ngModel)]="editForm.prenom" name="ePrenom" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" [(ngModel)]="editForm.email" name="eEmail" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Téléphone</label>
+            <input type="text" class="form-control" [(ngModel)]="editForm.telephone" name="eTel" required />
+          </div>
+          <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-warning" [disabled]="saving()">Enregistrer</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="editingRestaurateur.set(null)">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (resetPasswordTarget(); as target) {
+    <div class="card shadow-sm mb-4 border-info">
+      <div class="card-header bg-info-subtle fw-bold">
+        Réinitialiser le mot de passe de {{ target.prenom }} {{ target.nom }}
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="submitResetPassword()" class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label">Nouveau mot de passe (min. 8 car., maj, min, chiffre)</label>
+            <input type="text" class="form-control" [(ngModel)]="newPassword" name="newPwd" required />
+          </div>
+          <div class="col-md-6 d-flex gap-2">
+            <button type="submit" class="btn btn-info" [disabled]="saving()">Réinitialiser</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="resetPasswordTarget.set(null)">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (assignRestoTarget(); as target) {
+    <div class="card shadow-sm mb-4 border-success">
+      <div class="card-header bg-success-subtle fw-bold">
+        Attribuer un nouveau restaurant à {{ target.prenom }} {{ target.nom }}
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="submitAssignRestaurant()" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nom *</label>
+            <input type="text" class="form-control" [(ngModel)]="assignRestoForm.nom" name="aNom" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Type de cuisine *</label>
+            <input type="text" class="form-control" [(ngModel)]="assignRestoForm.typeCuisine" name="aCuisine" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description *</label>
+            <input type="text" class="form-control" [(ngModel)]="assignRestoForm.description" name="aDesc" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Adresse *</label>
+            <input type="text" class="form-control" [(ngModel)]="assignRestoForm.adresse" name="aAddr" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Horaires *</label>
+            <input type="text" class="form-control" [(ngModel)]="assignRestoForm.horaires" name="aHor" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Frais de livraison (DT)</label>
+            <input type="number" min="0" step="0.5" class="form-control" [(ngModel)]="assignRestoForm.fraisLivraison" name="aFrais" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">URL de l'image</label>
+            <input type="url" class="form-control" [(ngModel)]="assignRestoForm.image" name="aImg" />
+          </div>
+          <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-success" [disabled]="saving()">Attribuer le restaurant</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="assignRestoTarget.set(null)">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (changeOwnerTarget(); as resto) {
+    <div class="card shadow-sm mb-4 border-dark">
+      <div class="card-header bg-dark text-white fw-bold">
+        Changer le propriétaire de "{{ resto.nom }}"
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="submitChangeOwner()" class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label">Nouveau propriétaire restaurateur</label>
+            <select class="form-select" [(ngModel)]="newOwnerId" name="newOwnerId" required>
+              @for (r of restaurateurs(); track r._id) {
+                <option [value]="r._id">{{ r.prenom }} {{ r.nom }} ({{ r.email }})</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6 d-flex gap-2">
+            <button type="submit" class="btn btn-dark" [disabled]="saving()">Confirmer le transfert</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="changeOwnerTarget.set(null)">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Barre de recherche -->
+  <form (ngSubmit)="onSearch()" class="row g-2 mb-3">
+    <div class="col-md-5">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Rechercher par nom, prénom ou email..."
+        [(ngModel)]="search"
+        name="search"
+      />
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+    </div>
+  </form>
+
+  <!-- Liste des restaurateurs et de leurs restaurants -->
+  @if (loading()) {
+    <div class="text-center py-5"><div class="spinner-border"></div></div>
+  } @else {
+    @for (r of restaurateurs(); track r._id) {
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+            <div>
+              <h5 class="mb-1">
+                {{ r.prenom }} {{ r.nom }}
+                <span class="badge ms-2" [class.bg-success]="r.isActive" [class.bg-danger]="!r.isActive">
+                  {{ r.isActive ? 'Actif' : 'Désactivé' }}
+                </span>
+              </h5>
+              <div class="text-muted small">
+                <i class="bi bi-envelope me-1"></i> {{ r.email }} &nbsp;|&nbsp;
+                <i class="bi bi-telephone me-1"></i> {{ r.telephone }}
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="openEdit(r)">
+                Modifier
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-info" (click)="openResetPassword(r)">
+                Réinit. MDP
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm"
+                [class.btn-outline-danger]="r.isActive"
+                [class.btn-outline-success]="!r.isActive"
+                (click)="toggleAccountStatus(r)"
+              >
+                {{ r.isActive ? 'Désactiver' : 'Activer' }}
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-success" (click)="openAssignRestaurant(r)">
+                + Attribuer un restaurant
+              </button>
+            </div>
+          </div>
+
+          <h6 class="small text-uppercase text-muted fw-bold mb-2">
+            Restaurants ({{ r.restaurants.length }})
+          </h6>
+          @if (r.restaurants.length === 0) {
+            <p class="text-muted small mb-0">Aucun restaurant attribué.</p>
+          } @else {
+            <div class="list-group">
+              @for (resto of r.restaurants; track resto._id) {
+                <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div>
+                    <strong>{{ resto.nom }}</strong>
+                    <span class="text-muted small ms-2">{{ resto.typeCuisine }} — {{ resto.adresse }}</span>
+                    <span
+                      class="badge ms-2"
+                      [class.bg-success]="resto.statut === 'valide'"
+                      [class.bg-warning]="resto.statut === 'en_attente'"
+                      [class.bg-danger]="resto.statut === 'suspendu'"
+                    >
+                      {{ resto.statut }}
+                    </span>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button
+                      type="button"
+                      class="btn btn-sm"
+                      [class.btn-outline-danger]="resto.statut === 'valide'"
+                      [class.btn-outline-success]="resto.statut !== 'valide'"
+                      (click)="toggleRestaurantStatus(resto)"
+                    >
+                      {{ resto.statut === 'valide' ? 'Suspendre' : 'Valider' }}
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" (click)="openChangeOwner(resto)">
+                      Changer propriétaire
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="alert alert-light text-center border">Aucun restaurateur trouvé.</div>
+    }
+
+    @if (pages > 1) {
+      <nav class="d-flex justify-content-center gap-2 mt-3">
+        <button class="btn btn-sm btn-outline-secondary" [disabled]="page <= 1" (click)="goToPage(page - 1)">
+          Précédent
+        </button>
+        <span class="align-self-center small">Page {{ page }} / {{ pages }}</span>
+        <button class="btn btn-sm btn-outline-secondary" [disabled]="page >= pages" (click)="goToPage(page + 1)">
+          Suivant
+        </button>
+      </nav>
+    }
+  }
+</div>

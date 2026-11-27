@@ -20,4 +20,10 @@ router.put(
   authorize('restaurateur'),
   categoryController.updateCategory
 );
+router.delete(
+  '/:categoryId',
+  protect,
+  authorize('restaurateur'),
+  categoryController.deleteCategory
+);
 module.exports = router;

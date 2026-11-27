@@ -1,160 +1,174 @@
+// Partie Yassmine : plats et menus
 const mongoose = require('mongoose');
 const Dish = require('../models/Dish');
 const Restaurant = require('../models/Restaurant');
+const Category = require('../models/Category');
 
 const userId = (req) => req.user._id || req.user.id;
+const bad = (res, message, status = 400) => res.status(status).json({ message });
+const serverError = (res, err) => res.status(500).json({ message: 'Erreur serveur', error: err.message });
 
-async function findOwnedDish(dishId, ownerId) {
-  if (!mongoose.isObjectIdOrHexString(dishId)) {
-    return { error: { status: 400, message: 'Identifiant de plat invalide' } };
+// Champs modifiables par le restaurateur (liste blanche : "restaurant" n'est pas modifiable)
+const EDITABLE = ['nom', 'description', 'prix', 'image', 'disponible', 'categorie'];
+
+// Contrôle de propriété : le restaurant doit appartenir au restaurateur connecté
+const ownsRestaurant = (req, restaurantId) =>
+  Restaurant.exists({ _id: restaurantId, owner: userId(req) });
+
+// Valide les champs reçus ; retourne un message d'erreur ou null
+function validate(body, { partial }) {
+  if (!partial || body.nom !== undefined) {
+    if (typeof body.nom !== 'string' || !body.nom.trim()) return 'Le nom du plat est obligatoire';
   }
-  const dish = await Dish.findById(dishId);
-  if (!dish) {
-    return { error: { status: 404, message: 'Plat introuvable' } };
+  if (!partial || body.prix !== undefined) {
+    const p = Number(body.prix);
+    if (body.prix === '' || body.prix === null || body.prix === undefined || Number.isNaN(p) || p < 0) {
+      return 'Le prix doit être un nombre positif';
+    }
   }
-  const restaurant = await Restaurant.findOne({ _id: dish.restaurant, owner: ownerId });
-  if (!restaurant) {
-    return { error: { status: 403, message: 'Ce plat ne vous appartient pas' } };
+  if (body.disponible !== undefined && typeof body.disponible !== 'boolean') {
+    return 'Le champ disponible doit être un booléen';
   }
-  return { dish, restaurant };
+  return null;
 }
 
-// GET /api/dishes/restaurant/:restaurantId (public)
-exports.getDishesByRestaurant = async (req, res) => {
+// GET /api/dishes?restaurant=&categorie=&disponible=&search=   (public)
+exports.getDishes = async (req, res) => {
   try {
-    const { restaurantId } = req.params;
-    if (!mongoose.isObjectIdOrHexString(restaurantId)) {
-      return res.status(400).json({ message: 'Identifiant de restaurant invalide' });
+    const { restaurant, categorie, disponible, search } = req.query;
+    const filter = {};
+    if (restaurant) {
+      if (!mongoose.isValidObjectId(restaurant)) return bad(res, 'Identifiant restaurant invalide');
+      filter.restaurant = restaurant;
+    }
+    if (categorie) {
+      if (!mongoose.isValidObjectId(categorie)) return bad(res, 'Identifiant catégorie invalide');
+      filter.categorie = categorie;
+    }
+    if (disponible === 'true' || disponible === 'false') filter.disponible = disponible === 'true';
+    if (search) {
+      filter.nom = { $regex: String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
     }
 
-    const filter = { restaurant: restaurantId };
-    if (req.query.disponible === 'true') {
-      filter.disponible = true;
-    }
-
-    const dishes = await Dish.find(filter).sort({ categorie: 1, nom: 1 });
-    return res.json(dishes);
-  } catch (error) {
-    console.error('Erreur getDishesByRestaurant :', error);
-    return res.status(500).json({ message: 'Erreur serveur' });
+    const dishes = await Dish.find(filter).populate('categorie', 'nom').sort({ nom: 1 });
+    res.json(dishes);
+  } catch (err) {
+    serverError(res, err);
   }
 };
 
-// GET /api/dishes/my (restaurateur)
+// GET /api/dishes/mine   (restaurateur : tous les plats de ses restaurants)
 exports.getMyDishes = async (req, res) => {
   try {
-    const restaurants = await Restaurant.find({ owner: userId(req) }).sort({ nom: 1 });
-    const restaurantIds = restaurants.map((r) => r._id);
-    const dishes = await Dish.find({ restaurant: { $in: restaurantIds } })
+    const mine = await Restaurant.find({ owner: userId(req) }).select('_id');
+    const dishes = await Dish.find({ restaurant: { $in: mine.map((r) => r._id) } })
+      .populate('categorie', 'nom')
       .populate('restaurant', 'nom')
-      .sort({ createdAt: -1 });
-
-    return res.json({ restaurants, dishes });
-  } catch (error) {
-    console.error('Erreur getMyDishes :', error);
-    return res.status(500).json({ message: 'Erreur serveur' });
+      .sort({ nom: 1 });
+    res.json(dishes);
+  } catch (err) {
+    serverError(res, err);
   }
 };
 
-// POST /api/dishes (restaurateur)
+// GET /api/dishes/my-options   (restaurateur : ses restaurants + leurs catégories, pour le formulaire)
+exports.getMyOptions = async (req, res) => {
+  try {
+const restaurants = await Restaurant.find({ owner: userId(req) });    const categories = await Category.find({ restaurant: { $in: restaurants.map((r) => r._id) } })
+      .select('nom restaurant')
+      .sort({ nom: 1 });
+    res.json({ restaurants, categories });
+  } catch (err) {
+    serverError(res, err);
+  }
+};
+
+// GET /api/dishes/:id   (public)
+exports.getDishById = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return bad(res, 'Identifiant invalide');
+    const dish = await Dish.findById(req.params.id).populate('categorie', 'nom');
+    if (!dish) return bad(res, 'Plat introuvable', 404);
+    res.json(dish);
+  } catch (err) {
+    serverError(res, err);
+  }
+};
+
+// POST /api/dishes   (restaurateur propriétaire du restaurant)
 exports.createDish = async (req, res) => {
   try {
-    const owner = userId(req);
-    const { nom, description, prix, image, categorie, disponible, restaurant: restaurantId } = req.body;
+    const msg = validate(req.body, { partial: false });
+    if (msg) return bad(res, msg);
 
-    let targetRestaurant;
-    if (restaurantId) {
-      if (!mongoose.isObjectIdOrHexString(restaurantId)) {
-        return res.status(400).json({ message: 'Identifiant de restaurant invalide' });
-      }
-      targetRestaurant = await Restaurant.findOne({ _id: restaurantId, owner });
-    } else {
-      targetRestaurant = await Restaurant.findOne({ owner });
+    const { restaurant, categorie } = req.body;
+    if (!mongoose.isValidObjectId(restaurant) || !mongoose.isValidObjectId(categorie)) {
+      return bad(res, 'Restaurant et catégorie sont obligatoires');
+    }
+    if (!(await ownsRestaurant(req, restaurant))) {
+      return bad(res, 'Ce restaurant ne vous appartient pas', 403);
+    }
+    // La catégorie doit appartenir au même restaurant (cohérence des données)
+    if (!(await Category.exists({ _id: categorie, restaurant }))) {
+      return bad(res, "Cette catégorie n'appartient pas à ce restaurant");
     }
 
-    if (!targetRestaurant) {
-      return res.status(404).json({ message: 'Aucun restaurant trouvé pour ce compte' });
-    }
+    const data = { restaurant };
+    EDITABLE.forEach((k) => { if (req.body[k] !== undefined) data[k] = req.body[k]; });
+    data.nom = data.nom.trim();
+    data.prix = Number(data.prix);
 
-    const dish = await Dish.create({
-      nom,
-      description,
-      prix,
-      image,
-      categorie,
-      disponible: disponible !== undefined ? disponible : true,
-      restaurant: targetRestaurant._id,
-    });
-
-    const populated = await dish.populate('restaurant', 'nom');
-    return res.status(201).json(populated);
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ message: error.message });
-    }
-    console.error('Erreur createDish :', error);
-    return res.status(500).json({ message: 'Erreur serveur' });
+    const dish = await Dish.create(data);
+    res.status(201).json(await dish.populate('categorie', 'nom'));
+  } catch (err) {
+    if (err.name === 'ValidationError') return bad(res, err.message);
+    serverError(res, err);
   }
 };
 
-// PUT /api/dishes/:id (restaurateur)
+// PUT /api/dishes/:id   (modification partielle : infos, prix, disponibilité, catégorie)
 exports.updateDish = async (req, res) => {
   try {
-    const { dish, error } = await findOwnedDish(req.params.id, userId(req));
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+    if (!mongoose.isValidObjectId(req.params.id)) return bad(res, 'Identifiant invalide');
+    const dish = await Dish.findById(req.params.id);
+    if (!dish) return bad(res, 'Plat introuvable', 404);
+    if (!(await ownsRestaurant(req, dish.restaurant))) {
+      return bad(res, "Ce plat n'appartient pas à vos restaurants", 403);
     }
 
-    const { nom, description, prix, image, categorie, disponible } = req.body;
-    if (nom !== undefined) dish.nom = nom;
-    if (description !== undefined) dish.description = description;
-    if (prix !== undefined) dish.prix = prix;
-    if (image !== undefined) dish.image = image;
-    if (categorie !== undefined) dish.categorie = categorie;
-    if (disponible !== undefined) dish.disponible = disponible;
+    const msg = validate(req.body, { partial: true });
+    if (msg) return bad(res, msg);
 
+    if (req.body.categorie !== undefined) {
+      const okId = mongoose.isValidObjectId(req.body.categorie);
+      if (!okId || !(await Category.exists({ _id: req.body.categorie, restaurant: dish.restaurant }))) {
+        return bad(res, "Cette catégorie n'appartient pas au restaurant du plat");
+      }
+    }
+
+    EDITABLE.forEach((k) => { if (req.body[k] !== undefined) dish[k] = req.body[k]; });
+    if (req.body.prix !== undefined) dish.prix = Number(req.body.prix);
     await dish.save();
-    const populated = await dish.populate('restaurant', 'nom');
-    return res.json(populated);
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ message: error.message });
-    }
-    console.error('Erreur updateDish :', error);
-    return res.status(500).json({ message: 'Erreur serveur' });
+    res.json(await dish.populate('categorie', 'nom'));
+  } catch (err) {
+    if (err.name === 'ValidationError') return bad(res, err.message);
+    serverError(res, err);
   }
 };
 
-// PATCH /api/dishes/:id/availability (restaurateur)
-exports.toggleAvailability = async (req, res) => {
-  try {
-    const { dish, error } = await findOwnedDish(req.params.id, userId(req));
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
-    }
-
-    dish.disponible = !dish.disponible;
-    await dish.save();
-    const populated = await dish.populate('restaurant', 'nom');
-    return res.json(populated);
-  } catch (error) {
-    console.error('Erreur toggleAvailability :', error);
-    return res.status(500).json({ message: 'Erreur serveur' });
-  }
-};
-
-// DELETE /api/dishes/:id (restaurateur)
+// DELETE /api/dishes/:id
 exports.deleteDish = async (req, res) => {
   try {
-    const { dish, error } = await findOwnedDish(req.params.id, userId(req));
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+    if (!mongoose.isValidObjectId(req.params.id)) return bad(res, 'Identifiant invalide');
+    const dish = await Dish.findById(req.params.id);
+    if (!dish) return bad(res, 'Plat introuvable', 404);
+    if (!(await ownsRestaurant(req, dish.restaurant))) {
+      return bad(res, "Ce plat n'appartient pas à vos restaurants", 403);
     }
-
+    // Les commandes passées gardent nom et prix dans leurs articles : l'historique n'est pas affecté
     await dish.deleteOne();
-    return res.json({ message: 'Plat supprimé avec succès' });
-  } catch (error) {
-    console.error('Erreur deleteDish :', error);
-    return res.status(500).json({ message: 'Erreur serveur' });
+    res.json({ message: 'Plat supprimé' });
+  } catch (err) {
+    serverError(res, err);
   }
 };

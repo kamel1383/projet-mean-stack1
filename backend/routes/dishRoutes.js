@@ -1,16 +1,20 @@
 const router = require('express').Router();
-const dishController = require('../controllers/dishController');
 const { protect } = require('../middleware/authMiddleware');
 const { authorize } = require('../middleware/roleMiddleware');
+const c = require('../controllers/dishController');
 
-// Public : menu d'un restaurant
-router.get('/restaurant/:restaurantId', dishController.getDishesByRestaurant);
+// Routes publiques (consultation du menu)
+router.get('/', c.getDishes);
 
-// Restaurateur : gestion de ses plats
-router.get('/my', protect, authorize('restaurateur'), dishController.getMyDishes);
-router.post('/', protect, authorize('restaurateur'), dishController.createDish);
-router.put('/:id', protect, authorize('restaurateur'), dishController.updateDish);
-router.patch('/:id/availability', protect, authorize('restaurateur'), dishController.toggleAvailability);
-router.delete('/:id', protect, authorize('restaurateur'), dishController.deleteDish);
+// IMPORTANT : /mine et /my-options AVANT /:id (sinon "mine" est pris pour un identifiant)
+router.get('/mine', protect, authorize('restaurateur'), c.getMyDishes);
+router.get('/my-options', protect, authorize('restaurateur'), c.getMyOptions);
+
+router.get('/:id', c.getDishById);
+
+// Gestion par le restaurateur (propriété vérifiée dans le contrôleur)
+router.post('/', protect, authorize('restaurateur'), c.createDish);
+router.put('/:id', protect, authorize('restaurateur'), c.updateDish);
+router.delete('/:id', protect, authorize('restaurateur'), c.deleteDish);
 
 module.exports = router;
