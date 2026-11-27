@@ -8,9 +8,10 @@ import { Order, OrderStatus, OrdersPage } from '../models/order.model';
 export class RestaurantOrderService {
   private http = inject(HttpClient);
 
-  getOrders(opts: { statut?: string; page?: number; limit?: number } = {}): Observable<OrdersPage> {
+  getOrders(opts: { statut?: string; restaurantId?: string; page?: number; limit?: number } = {}): Observable<OrdersPage> {
     let params = new HttpParams();
     if (opts.statut) params = params.set('statut', opts.statut);
+    if (opts.restaurantId) params = params.set('restaurantId', opts.restaurantId);
     if (opts.page) params = params.set('page', opts.page);
     if (opts.limit) params = params.set('limit', opts.limit);
     return this.http.get<OrdersPage>(`${API_URL}/orders/restaurant`, { params });

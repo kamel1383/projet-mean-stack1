@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../api.config';
 import { AdminStats, RestaurantStats } from '../models/stats.model';
@@ -8,8 +8,12 @@ import { AdminStats, RestaurantStats } from '../models/stats.model';
 export class StatsService {
   private http = inject(HttpClient);
 
-  getRestaurantStats(): Observable<RestaurantStats> {
-    return this.http.get<RestaurantStats>(`${API_URL}/stats/restaurant`);
+  getRestaurantStats(restaurantId?: string): Observable<RestaurantStats> {
+    let params = new HttpParams();
+    if (restaurantId) {
+      params = params.set('restaurantId', restaurantId);
+    }
+    return this.http.get<RestaurantStats>(`${API_URL}/stats/restaurant`, { params });
   }
 
   getAdminStats(): Observable<AdminStats> {

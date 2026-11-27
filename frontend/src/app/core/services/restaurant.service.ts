@@ -107,4 +107,31 @@ export class RestaurantService {
   updateRestaurant(id: string, payload: Partial<Restaurant>): Observable<Restaurant> {
     return this.http.put<Restaurant>(`${API_URL}/restaurants/${id}`, payload);
   }
+
+  getMyRestaurants(): Observable<{ restaurants: Restaurant[] }> {
+    return this.http.get<{ restaurants: Restaurant[] }>(`${API_URL}/restaurants/my`);
+  }
+
+  createRestaurantForOwner(payload: {
+    ownerId: string;
+    nom: string;
+    description: string;
+    adresse: string;
+    typeCuisine: string;
+    image?: string;
+    horaires: string;
+    fraisLivraison: number;
+  }): Observable<Restaurant> {
+    return this.http.post<Restaurant>(`${API_URL}/restaurants/admin`, payload);
+  }
+
+  changeRestaurantOwner(
+    restaurantId: string,
+    ownerId: string,
+  ): Observable<{ message: string; restaurant: Restaurant }> {
+    return this.http.patch<{ message: string; restaurant: Restaurant }>(
+      `${API_URL}/restaurants/${restaurantId}/owner`,
+      { ownerId },
+    );
+  }
 }

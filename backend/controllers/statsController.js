@@ -1,4 +1,5 @@
 // Partie Kamel : statistiques restaurateur + admin
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Restaurant = require('../models/Restaurant');
 const User = require('../models/User');
@@ -6,11 +7,21 @@ const User = require('../models/User');
 const userId = (req) => req.user._id || req.user.id;
 const countIf = (statut) => ({ $sum: { $cond: [{ $eq: ['$statut', statut] }, 1, 0] } });
 
-// GET /api/stats/restaurant   (role: restaurateur)
+// GET /api/stats/restaurant?restaurantId=   (role: restaurateur)
 exports.getRestaurantStats = async (req, res) => {
   try {
     const mine = await Restaurant.find({ owner: userId(req) }).select('_id');
-    const match = { restaurant: { $in: mine.map((r) => r._id) } };
+    const myIds = mine.map((r) => r._id.toString());
+
+    let targetIds = mine.map((r) => r._id);
+    if (req.query.restaurantId) {
+      if (!mongoose.isValidObjectId(req.query.restaurantId) || !myIds.includes(req.query.restaurantId)) {
+        return res.status(403).json({ message: 'Ce restaurant ne vous appartient pas' });
+      }
+      targetIds = [new mongoose.Types.ObjectId(req.query.restaurantId)];
+    }
+
+    const match = { restaurant: { $in: targetIds } };
 
     const [summary] = await Order.aggregate([
       { $match: match },

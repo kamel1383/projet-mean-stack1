@@ -137,3 +137,41 @@ exports.updateCategory = async (req, res) => {
     return res.status(500).json({ message: 'Erreur serveur' });
   }
 };
+
+// DELETE /api/categories/:categoryId (Restaurateur)
+// Supprime une catégorie appartenant à un restaurant du restaurateur connecté
+exports.deleteCategory = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    const { categoryId } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Authentification requise' });
+    }
+
+    if (!mongoose.isObjectIdOrHexString(categoryId)) {
+      return res.status(400).json({ message: 'Identifiant invalide' });
+    }
+
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ message: 'Catégorie introuvable' });
+    }
+
+    const restaurant = await Restaurant.findOne({
+      _id: category.restaurant,
+      owner: userId,
+    });
+    if (!restaurant) {
+      return res.status(403).json({
+        message: 'Vous ne pouvez supprimer que les catégories de vos restaurants',
+      });
+    }
+
+    await category.deleteOne();
+    return res.json({ message: 'Catégorie supprimée avec succès' });
+  } catch (error) {
+    console.error('Erreur deleteCategory :', error);
+    return res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
